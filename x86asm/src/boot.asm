@@ -1,4 +1,4 @@
-
+org 0x7c00
 mov ax,0x3
 int 0x10
 
@@ -7,27 +7,95 @@ DATA equ 0x3d5
 HIGH equ 0x0e
 LOW  equ 0x0f
 
-xchg bx,bx
+; xchg bx,bx
 mov ax,0x7c00
 ;mov ss,ax
 mov sp,0x7c00
 
-mov ax,18*80
-
+mov ax,2*80
 call setCursor
-xchg bx,bx
-mov ax,111
-
+; xchg bx,bx
+mov ax,11
 call getCursor
-
-add ax,10
-
+mov ax,81
 call setCursor
+call open_Int8
 
-call halt
+
+loopb:
+mov al,'X'
+mov bx,0
+call blink
+jmp loopb
+
+; https://wiki.osdev.org/8259_PIC
+
+; ;8259芯片端口号 
+; 主芯片控制0x20 
+; 主芯片数据0x21
+; 从芯片控制0xA0 
+; 从芯片数据0xA1
+open_Int8:
+
+    PIC_M_CMD equ 0x20
+    PIC_M_DATA equ 0x21
+
+    ;设置8号中断向量：
+    mov word [8*4], IR
+    mov word [8*4 +2],0
+    ;向OCW1写入屏蔽字，允许8号中断，时钟中断
+    mov al , 0b1111_1110
+    out PIC_M_DATA, al
+    sti
+    ret
+;中断例程
+    IR:
+    ; xchg bx,bx 
+    push ax
+    push bx
+
+    mov al,'I'
+    mov bx,80
+    call blink
+    ;向OCW2发送中断执行结束标志0X20，允许下一中断
+    MOV AL,0X20
+    OUT PIC_M_CMD,AL    
+    pop bx
+    pop ax
+    iret
 
 
-mov ax,500
+
+blink:
+    push es
+    push dx
+    push bx
+
+    mov dx,0xb800
+    mov es,dx
+
+    shl bx,1
+    mov dl,[es:bx]
+    mov dh,0x41
+    mov [es:bx+1],dh
+    
+    cmp dl,' '
+    jnz .set_space
+    .set_char:
+        mov [es:bx],al
+        jmp .done
+       
+    .set_space:
+        mov byte [es:bx],' '
+    .done:
+        
+        pop bx
+        pop dx
+        pop es
+    ret
+
+
+
 
 setCursor:
     push bx
@@ -83,66 +151,12 @@ getCursor:
 
 
 
-; xchg bx,bx
-; mov ax, 0x00
-; mov ds, ax
-
-; mov word [0],haha
-; mov word [2],0
-; mov word [80*4],haha
-; mov word [80*4 +2],0
-
-; xchg bx,bx
-; mov ax, 0xb800
-; mov ds, ax
- 
-; int 80
-
-; xchg bx,bx
-; mov ax, 0xb801
-; mov ds, ax
-
-; div bx
-
-; mov ax,$$
-; mov ax,$
 
 
 
-; xchg bx,bx
-; mov ax, 0xb809
-; mov ds, ax
 
-; haha:
 
-; xchg bx,bx
-; mov ax,msg
-; mov si,ax
-
-; mov cx,msg_end - msg
-; mov ax,0
-; mov di,ax
-; mov di,0
-; mov ax,0x0
-; mov es,ax
-; print:
-;     mov byte al,[es:si]
-;     mov byte[ds:di],al
-;     add di,2
-;     inc si
-;     loop print
-
-; iret
-
-halt:
-    jmp halt
-msg:
-    
-    dw "hello world!"
-    db 0x55
-msg_end:
 times 510 - ($ -$$) db 0
 db 0x55 , 0xaa
 
 
-org 0x7c00
