@@ -1,25 +1,14 @@
 x86asm/build/master.img
 x86asm/build/master.vmk
 x86asm/build/bx_enh_dbg.ini
+x86asm/build/master.img.lock
+x86asm/build/*
+/x86asm/build/boot.bin
+x86asm/build/master.img
+
+
 x86asm/bochs/pkg
 x86asm/bochs/src
-x86asm/build/master.img.lock
-x86asm/build/*.bin
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
