@@ -30,6 +30,11 @@ call open_Int8
     mov edi,0x1000
 call read_disk
 
+
+
+
+
+
     xchg bx,bx
     mov bl,2
     mov ecx,1
