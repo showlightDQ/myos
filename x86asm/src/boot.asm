@@ -2,9 +2,6 @@ org 0x7c00
 xchg bx,bx
 
 
-
-
-
 mov ax,0x3
 int 0x10
 
@@ -32,6 +29,11 @@ call open_Int8
     mov ecx,0
     mov edi,0x1000
 call read_disk
+
+    xchg bx,bx
+    mov bl,2
+    mov ecx,1
+    mov esi,0x7C00
 call write_disk
 
 loopb:
@@ -59,7 +61,7 @@ read_disk:  ;从硬盘的第ecx扇区读取bl个扇区，读入内存地址edi�
     ;edi-读入的内存地址
     ;ecx-读取的硬盘起始扇区
     ;bl-读取的扇区数量
-    pusha
+    pushad
 
     mov dx,0x1f2
     mov al,bl
@@ -77,8 +79,7 @@ read_disk:  ;从硬盘的第ecx扇区读取bl个扇区，读入内存地址edi�
     shr ecx,16
     mov al,cl
     out dx,al
-
-        xchg bx,bx
+       
     inc dx ;0x1f6
     shr ecx,8
     and cx,0xf    
@@ -105,98 +106,94 @@ read_disk:  ;从硬盘的第ecx扇区读取bl个扇区，读入内存地址edi�
     mov es,ax
      
     mov dx,0x1f0
-    mov cx,256  ;读入256个字，
-
 
     .read_loop:
-        
-        mov al,bl
-        cmp al,0
+        cmp bl,0
         jz .done
+        mov cx,256  ;读入256个字，
         .read_512byte:
             nop
             nop
             nop
             in ax,dx
-            mov [es:edi],ax
+            mov [edi],ax
             add edi,2
             loop .read_512byte
-    xchg bx,bx
+    ; xchg bx,bx
     dec bl
     jmp .read_loop
     .done:
 
-    xchg bx,bx
-    popa
+    popad
     ret
 
 
-write_disk:
+write_disk: ;把内存的esi位置开始的bl个扇区，写入硬盘的第ecx个扇区
+    pusha
+
     mov dx,0x1f2
-    mov al,1
-    out dx,al ;设置写扇区数 
+    mov al,bl
+    out dx,al ;设置读扇区数 
 
-    mov al,2  
-
-    inc dx ;0x1f3  平坦模式下  数据的起始位置
+    inc dx ;0x1f3  平坦模式下   数据的起始 扇区
+    mov al,cl
     out dx,al
     
-    mov al,0
-
     inc dx ;0x1f4
+    mov al,ch
     out dx,al
 
     inc dx ;0x1f5
+    shr ecx,16
+    mov al,cl
     out dx,al
-
+     
     inc dx ;0x1f6
+    shr ecx,8
+    and cx,0xf    
     mov al,0b1110_0000 ;主盘，LBA模式
+    or al,cl
     out dx,al
 
     inc dx; 0x1f7
     mov al,0x30 ;写盘命令
     out dx,al
 
-    .check_write_state:
+    .check_state:
         nop
         nop
         nop
         mov dx,0x1f7
         in al,dx
         and al,0b1000_0001
-        ; cmp al,0b0000_0000
-        jnz .check_write_state
+        ;cmp al,0b0000_1000
+        jnz .check_state
 
     
-    mov ax,0x50 ;数据读取的位置是 内存0x500开始的位置
+    mov ax,0; 
     mov es,ax
-    mov di,0
-
+     
     mov dx,0x1f0
-    mov cx,256  ;读入256个字，
 
     .write_loop:
-        nop
-        nop
-        nop
-        mov ax,[es:di]
-        out dx,ax
-        
-        add di,2
-        loop .write_loop
-
-    xchg bx,bx
+        cmp bl,0
+        jz .done
+        mov cx,256  ;读入256个字，
+        .write_512byte:
+            nop
+            nop
+            nop
+            mov ax,[esi]
+            out dx,ax
+            add esi,2
+            loop .write_512byte
+    dec bl
+    jmp .write_loop
+    .done:
+    
+    popa
     ret
-
-
-
-
-
-
-
-
-
-
+    
 
 
 
@@ -330,5 +327,5 @@ getCursor:
 
 times 510 - ($ -$$) db 0
 db 0x55 , 0xaa
-
+times 1028 db 0x5a
 
