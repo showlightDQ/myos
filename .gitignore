@@ -1,3 +1,5 @@
 x86asm/build/*.bin
 x86asm/build/master.img
 x86asm/build/master.img.lock
+x86asm/build/bx_enh_dbg.ini
+*.o

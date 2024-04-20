@@ -10,5 +10,6 @@ mov byte [es:0],"L"
 ; mov al,'X'
 ; mov bx,0
 ; call blink
+mov [ax:di],bx
 
 jmp $

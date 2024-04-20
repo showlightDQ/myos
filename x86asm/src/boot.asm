@@ -5,40 +5,32 @@ xchg bx,bx
 mov ax,0x3
 int 0x10
 
-ADDR equ 0x3d4
-DATA equ 0x3d5
-HIGH equ 0x0e
-LOW  equ 0x0f
-
 ; xchg bx,bx
 mov ax,0x7c00
 ;mov ss,ax
 mov sp,0x7c00
 
-mov ax,2*80
+    mov ax,2*80
 call setCursor
 ; xchg bx,bx
-mov ax,11
-call getCursor
-mov ax,81
-call setCursor
-call open_Int8
 
-   
+    mov ax,11
+call getCursor
+
+    mov ax,81
+call setCursor
+
+call open_Int8
+  
     mov bl,10
     mov ecx,1
     mov edi,0x1000
 call read_disk
 
-xchg bx,bx
-
     mov bl,2
     mov ecx,4
     mov esi,0x7C00
 call write_disk
-
-xchg bx,bx
-
 
 jmp 0x1000
 
@@ -267,6 +259,10 @@ blink:
 
 
 setCursor:
+    ADDR equ 0x3d4
+    DATA equ 0x3d5
+    HIGH equ 0x0e
+    LOW  equ 0x0f
     push bx
     push dx
 
