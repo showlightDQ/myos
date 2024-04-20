@@ -1,2 +1,3 @@
-x86asm/build/boot.bin
+x86asm/build/*.bin
 x86asm/build/master.img
+x86asm/build/master.img.lock

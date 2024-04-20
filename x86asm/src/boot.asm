@@ -24,28 +24,23 @@ mov ax,81
 call setCursor
 call open_Int8
 
-    xchg bx,bx
-    mov bl,2
-    mov ecx,0
+   
+    mov bl,10
+    mov ecx,1
     mov edi,0x1000
 call read_disk
 
+xchg bx,bx
 
-
-
-
-
-    xchg bx,bx
     mov bl,2
-    mov ecx,1
+    mov ecx,4
     mov esi,0x7C00
 call write_disk
 
-loopb:
-mov al,'X'
-mov bx,0
-call blink
-jmp loopb
+xchg bx,bx
+
+
+jmp 0x1000
 
 
 read_disk:  ;从硬盘的第ecx扇区读取bl个扇区，读入内存地址edi位置
@@ -332,5 +327,3 @@ getCursor:
 
 times 510 - ($ -$$) db 0
 db 0x55 , 0xaa
-times 1028 db 0x5a
-
