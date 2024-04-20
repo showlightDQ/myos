@@ -32,6 +32,7 @@ xchg bx,bx
     mov esi,0x7C00
 call write_disk
 
+
 jmp 0x1000
 
 
