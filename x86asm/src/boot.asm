@@ -26,6 +26,7 @@ call open_Int8
     mov ecx,1
     mov edi,0x1000
 call read_disk
+xchg bx,bx
 
     mov bl,2
     mov ecx,4
@@ -83,6 +84,22 @@ read_disk:  ;从硬盘的第ecx扇区读取bl个扇区，读入内存地址edi�
     mov al,0x20 ;读盘命令
     out dx,al
 
+    ;读完一个盲区要检查一次，否则可能读错
+    mov ax,0; 
+    mov es,ax
+
+    xor ecx,ecx   ;ecx清零
+    mov cl,bl     ;定义循环次数
+
+    .read_many:
+        push cx
+        call .check_read_state
+        call .read_512byte
+        pop cx
+        loop .read_many
+
+    popad
+    ret
     .check_read_state:
         nop
         nop
@@ -92,32 +109,21 @@ read_disk:  ;从硬盘的第ecx扇区读取bl个扇区，读入内存地址edi�
         and al,0b1000_1001
         cmp al,0b0000_1000
         jnz .check_read_state
-
-    
-    mov ax,0;数据读入的位置
-    mov es,ax
+        ret
      
-    mov dx,0x1f0
 
-    .read_loop:
-        cmp bl,0
-        jz .done
+    .read_512byte:
         mov cx,256  ;读入256个字，
-        .read_512byte:
+        mov dx,0x1f0
+        .read_loop:
             nop
             nop
             nop
             in ax,dx
             mov [edi],ax
             add edi,2
-            loop .read_512byte
-    ; xchg bx,bx
-    dec bl
-    jmp .read_loop
-    .done:
-
-    popad
-    ret
+            loop .read_loop
+        ret
 
 
 write_disk: ;把内存的esi位置开始的bl个扇区，写入硬盘的第ecx个扇区
@@ -151,56 +157,55 @@ write_disk: ;把内存的esi位置开始的bl个扇区，写入硬盘的第ecx�
     mov al,0x30 ;写盘命令
     out dx,al
 
-    .check_state:
+    mov ax,0; 
+    mov es,ax
+
+    xor ecx,ecx   ;ecx清零
+    mov cl,bl     ;定义循环次数
+
+    .write_many:
+        push cx
+        call .check_write_state
+        call .write_512byte
+        pop cx
+        loop .write_many
+
+    popa
+    ret
+
+    .check_write_state:
         nop
         nop
         nop
         mov dx,0x1f7
         in al,dx
         and al,0b1000_0001
-        ;cmp al,0b0000_1000
-        jnz .check_state
-
+        ;cmp al,0b0000_0000
+        jnz .check_write_state
+        ret    
     
-    mov ax,0; 
-    mov es,ax
-     
-    mov dx,0x1f0
-
-    .write_loop:
-        cmp bl,0
-        jz .done
+    .write_512byte:
         mov cx,256  ;读入256个字，
-        .write_512byte:
+        mov dx,0x1f0    
+        .write_loop:
             nop
             nop
             nop
             mov ax,[esi]
             out dx,ax
             add esi,2
-            loop .write_512byte
-    dec bl
-    jmp .write_loop
-    .done:
-    
-    popa
-    ret
-    
+            loop .write_loop
+        ret 
 
-
-
-; 外中断 https://wiki.osdev.org/8259_PIC
-
+open_Int8:
+    ; 外中断 https://wiki.osdev.org/8259_PIC
     ; ;8259芯片端口号 
     ; 主芯片控制0x20 
     ; 主芯片数据0x21
     ; 从芯片控制0xA0 
     ; 从芯片数据0xA1
-open_Int8:
-
     PIC_M_CMD equ 0x20
     PIC_M_DATA equ 0x21
-
     ;设置8号中断向量：
     mov word [8*4], IR
     mov word [8*4 +2],0

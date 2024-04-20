@@ -10,6 +10,8 @@ mov byte [es:0],"L"
 ; mov al,'X'
 ; mov bx,0
 ; call blink
-mov [ax:di],bx
+; mov [ax:di],bx
 
 jmp $
+
+times 1024 db 0x22
