@@ -1,7 +1,6 @@
 org 0x7c00
 xchg bx,bx
 
-
 mov ax,0x3
 int 0x10
 
@@ -11,14 +10,14 @@ mov ax,0x7c00
 mov sp,0x7c00
 
     mov ax,2*80
-call setCursor
+; call setCursor
 ; xchg bx,bx
 
-    mov ax,11
-call getCursor
+;     mov ax,11
+; call getCursor
 
-    mov ax,81
-call setCursor
+;     mov ax,81
+; call setCursor
 
 call open_Int8
   
@@ -317,6 +316,11 @@ getCursor:
     pop bx
     pop dx
     ret
+
+
+
+
+
 
 
 
