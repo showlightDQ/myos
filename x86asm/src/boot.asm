@@ -25,7 +25,7 @@ call open_Int8
     mov ecx,1
     mov edi,0x1000
 call read_disk
-xchg bx,bx
+; xchg bx,bx
 
     mov bl,2
     mov ecx,4
