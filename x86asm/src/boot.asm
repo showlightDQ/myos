@@ -21,6 +21,7 @@ mov sp,0x7c00
 
 call open_Int8
   
+xchg bx,bx
     mov bl,10
     mov ecx,1
     mov edi,0x1000

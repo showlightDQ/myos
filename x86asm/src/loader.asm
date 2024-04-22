@@ -34,18 +34,35 @@ prepare_protect_mode:
     xchg bx,bx 
         mov ax, data_selector
         mov ds, ax
+        mov ax, test_selector
         mov es, ax
-        mov ss, ax
+        mov es, ax
+        mov es, ax
+        mov es, ax
         mov fs, ax
         mov gs, ax
         mov esp, 0x10000    ;设置栈    
         mov byte [0xb8000], 'P'  ;测试保护模式寻址方式，
+        mov ss, ax
         xchg bx, bx 
       
-        mov  [0xf0000],eax
-        mov  [0xf0001],eax
-        mov  [0xf0002],eax
-        mov  [0xf0004],eax
+        mov  byte es:[2],'A'
+        mov  byte ss:[4],'B'
+        mov  byte fs:[6],'c'
+        mov  byte gs:[8],'d'
+        mov  byte ss:[10],'e'
+        mov  byte ss:[15],'e'
+        mov  byte ss:[14],'f'
+        mov  byte ss:[16],'g'
+        mov eax,0
+      looop:
+        mov  byte ss:[eax],'h'  
+        mov byte ebx,ss:[eax]      
+        add eax , 3
+        jmp looop
+        
+        mov  dword ss:[0x100],'z'
+
         mov  [0xf0008],eax
         mov  [0xf0009],eax
         mov  [0xf000a],eax
@@ -79,7 +96,8 @@ jmp $
         ;2位   TI  描述符类型，1表示LDT ，0表示GDT
         ;高13位表示选择8191个GDT中的哪个
     code_selector equ 1<<3  ;　代码段使用第1个描述符
-    data_selector equ 2<<3  ;  数据段使用第2个拱符
+    data_selector equ 2<<3  ;  数据段使用第2个描述符
+    test_selector equ 3<<3  ;  测试数据段
 
         base equ 0   ;32位 Base 基地址 可达 4G
         limit equ 0xfffff  ;20位limit (段大小-1)  可达 1M （如果limit的1表示4K，那么最大应该是可以访问4G
@@ -112,12 +130,19 @@ jmp $
         db (base >> 24 ) & 0xff  ;base的高8位
 
     gdt_data:  ;ＧＤＴ数据段定义
-        dw 0xf;limit &  0xffff   ;  取GDT的低16位limit
+        dw limit &  0xffff   ;  取GDT的低16位limit
         dw base & 0xffff   ;取base的低16位（0~15）
         db (base >> 16) & 0xff  ;取base的16~23位
         db 0b0010 | 0b01001_0000  ;0x12    数据段，0等级，内存；
-        db 0b0100_0000 | (limit >> 16)
+        db 0b1100_0000 | (limit >> 16)
         db (base >> 24 ) & 0xff  ;base的高8位
+    gdt_test:  ;测试数据段
+        dw 0xffff;  取GDT的低16位limit
+        dw 0x8000   ;取base的低16位（0~15）
+        db 0x000b  ;取base的16~23位
+        db 0b0010 | 0b01001_0000  ;0x12    数据段，0等级，内存；
+        db 0b0100_0000 
+        db 0;base的高8位
     gdt_end: 
 
 
@@ -148,7 +173,7 @@ check_memory:
     show_memory_check:
         mov cx,[ards_count]
         mov si,0
-        .check_loop        
+        .check_loop:
             mov eax,[si + ards_buffer]
             mov ebx,[si + ards_buffer + 8]
             mov edx,[si + ards_buffer +16]
