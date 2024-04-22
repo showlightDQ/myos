@@ -29,61 +29,10 @@ prepare_protect_mode:
     ;长跳转，可更新缓冲区的旧命令
     ud2 ; 出错代码，如果跳转不成功，可以卡在这里。
 
-    [bits 32]
-    protect_mode_entrance:     
-    xchg bx,bx 
-        mov ax, data_selector
-        mov ds, ax
-        mov ax, test_selector
-        mov es, ax
-        mov es, ax
-        mov es, ax
-        mov es, ax
-        mov fs, ax
-        mov gs, ax
-        mov esp, 0x10000    ;设置栈    
-        mov byte [0xb8000], 'P'  ;测试保护模式寻址方式，
-        mov ss, ax
-        xchg bx, bx 
-      
-        mov  byte es:[2],'A'
-        mov  byte ss:[4],'B'
-        mov  byte fs:[6],'c'
-        mov  byte gs:[8],'d'
-        mov  byte ss:[10],'e'
-        mov  byte ss:[15],'e'
-        mov  byte ss:[14],'f'
-        mov  byte ss:[16],'g'
-        mov eax,0
-      looop:
-        mov  byte ss:[eax],'h'  
-        mov byte ebx,ss:[eax]      
-        add eax , 3
-        jmp looop
-        
-        mov  dword ss:[0x100],'z'
-
-        mov  [0xf0008],eax
-        mov  [0xf0009],eax
-        mov  [0xf000a],eax
-        mov  [0xf000c],eax
-
-        mov  eax,[0xf000c]
-
-        mov  [0xff00e],eax
-        mov  [0xf0000],eax
-        mov  [0xbfffe],eax
-        
-        mov byte [0x200000], 'P'  ;测试访问1M以外的空间。
-        xchg bx,bx
-jmp $   
-
-
-
-
+[bits 32]
 ;定义ＧＤＴ指针。　即　ＬＧＤＴ加载的内容
     gdt_ptr:  ;GDT指针定义  LGDT 指令加载的内容！  
-                ;通过LGDT gdt_ptr 命令告诉CPU从这里读取前16位数据是GDT的长度，最多可表示到64KB的表长度，除以8字节，最多可以有8192个描述符。每个描述符可表示1M空间，共8Ｇ？
+                ;通过LGDT gdt_ptr 命令告诉CPU从这里读取前16位数据是GDT的长度，最多可表示到64KB的表长度，除以8字节，最多可以有8192个描述符。
                 ;（其实是长度-1，limit，表示读取时的最末端字节的偏移量）
                 ;然后再读32位数据，是GDT的起始地址
     dw  (gdt_end - gdt_base - 1) ; GDT的总长度 limit（其实是最后一个字节的偏移量，它等于GDT总字节数-1.
@@ -104,7 +53,7 @@ jmp $
                     ;最终，以下data描述符定义了从零开始的１Ｍ内存的属性
                     ;但，因为打开了保护模式，仍可访问别４Ｇ的空间地址。       
 
-;定义ＧＤＴ　全局描述符表　第描述符８字节。
+;定义ＧＤＴ　全局描述符表　每描述符８字节。
     gdt_base:   ;GDT 首地址
         dd 0,0  ;define double word 每个0是4字节，首GDT共8字节
     gdt_code:  ;GDT代码段定义
@@ -189,6 +138,112 @@ check_memory:
         times 512 db 0xff,0xff,
 
     ;===================================================
+
+setup_page:
+        ;32位系统可寻址内存共4G，4K为一页，共有1M页，每页用int 4字节表示，共需要4M 的页表
+        ;二级页表系统：
+        ;第一级PDT存储1K个表的起始地址，负责读取线性地址的前10位，选出一个表来，
+            ;表内的中间10位可指向一个1K个的PTE表的起始地址（高10位不用？），如：中间十位为0b00_0000_1111则它指向0xf000的物理地址，作为PTE的基址（自动补三个零）
+            ;低12位表明属性。
+        ;第二级页表PTE可存储1K个表，每个表对应线性地址的中间10位。表数据的后20位作为物理地址的高20位，指定一个4K的物理地址区域，
+            ;与线性地址的低12们共同组成一个32位的地址。可访问4G的内存空间。PTE表的低12位说明该地址的属性。
+        
+        ;PTE :Page Table Entry
+        ;PDE :Page Director Entry
+    PDE equ 0x2000  ;定义 0x2000~0x2FFF  PDE里面有1024个页的索引，每个索引4字节，共4K字节=0x1000
+        ;PDE :Page Directory Entry
+    PTE equ 0x3000  ;定义 0x3000~0x3FFF  PTE里面有1024个页，每个页有4k空间，
+    ATTR equ 0b11   ;定义页表属性：在内存中，可写
+    ATTR2 equ 0b10011  ;0x0013禁止高速缓存
+
+        ;4字节 0~11 属性，12~31索引
+        ;present : 1    是否在内存中
+        ;write : 1      0只读/1可写
+        ;user : 1       1普通用户 /0超级用户，特权3不允许写入
+        ;pwt : 1        1页通写，表示该页需要高速缓存
+        ;pcd : 1        1禁止高速缓存
+        ;accessed :1    1是否被CPU访问过
+        ;dirty :1       1脏位，是否已使用
+        ;pat : 1        1页属性  / 0
+        ;global : 1     1全局位，应该放在快表中
+        ;available :3   1留给系统用
+        ;index : 20     页索引，1M
+
+
+
+    mov eax, PDE    ;清空 PDE
+    call .clear_page
+    mov eax, PTE        ;清空 PTE
+    call .clear_page
+
+    ;前面的1M内存  映射在1M
+    ;前面的1M内存  映射到0xC000_0000 - 0xC0100_0000 
+
+    mov eax, PTE
+    or eax, ATTR
+    mov [PDE], eax   ;  0x0000_3003 ; PDE第0项页表指向0x3000,在内存中，可写
+    mov [PDE+ 0x300 * 4], eax;0x300左移2位=0xC00
+        ;设置PDE第0x300页也指向PTE的第0页。PDE、PTE页码范围0x000~0x3FF,共1024*4字节
+        ;即线性地址0B1100_0000_00**_****_****_****_****_****，指向的物理地址由PTE的多页决定
+        ;即线性地址0xC0000000~0xC03FFFFF,共4M的空间由PTE指定
+        ;每页PTE指向4K空间，每页PDE指向1024个PTE，即4M空间，
+                 
+        mov eax, PDE 
+        or eax ,ATTR  ;附上属性
+        mov [PDE + 0x3ff *4], eax ;0x3FF左移2位=0xFFC
+        ;最后一个页表指向页目录
+       
+    mov ebx, PTE
+    mov ecx, (0x100000 / 0x1000); 1M/4K = 256 
+        ;只设置256个PTE表，设置1M的可访问空间。有768个表没有设置。
+    mov esi,0
+    
+    .next_page:
+        mov eax,esi
+        shl eax, 12 ;设置PTE索引号。指向物理地址的高8位，与线性的低12位组合访问1M空间
+        or eax, ATTR ;设置每个PTE面的属性为“在内存中，可写”
+        mov [ebx +esi *4], eax
+        ;设置0B****_****_**00_0000_0000_0000_0000_0000到0B****_****_**00_0000_1111_1111_1111_1111这1M空间的属性
+        inc esi
+        loop  .next_page
+        
+    ; mov eax,0x0000_3003
+    ; mov [PDE + 0x3C0 * 4],eax 
+    ; mov eax,0x000B8003
+    ; mov [PTE + 0*4],eax 
+    xchg bx,bx
+    ;打开内存映射    
+    mov eax , PDE 
+    mov cr3, eax  ;装载映射表
+    mov eax, cr0
+    or eax , 0b1000_0000_0000_0000_0000_0000_0000_0000;
+    mov cr0, eax   ;开启映射 
+    ret 
+        .clear_page:
+        xchg bx,bx
+            mov ecx,0x400
+            .loop_clear_page:
+                mov dword [eax+ecx*4],0x0
+                loop .loop_clear_page
+            ret
+
+
+protect_mode_entrance:  
+        mov ax, data_selector
+        mov ds, ax
+        mov ax, test_selector
+        mov es, ax        
+        mov esp, 0x10000    ;设置栈    
+        mov byte [0xb8000], 'P'  ;测试保护模式寻址方式，
+        
+        call setup_page
+
+        xchg bx,bx
+jmp $  
+
+
+
+
 
 
 

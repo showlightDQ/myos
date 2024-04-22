@@ -44,3 +44,6 @@ main:
     section .data
         message db "hello world!!!" , 10,13,0
         message_end:
+
+; 编译命令 nasm -f elf32 test_linux_protect_mode.asm 
+; 链接命令 gcc -m32 test_linux_protect_mode.o -static
