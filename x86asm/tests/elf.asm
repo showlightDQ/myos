@@ -34,9 +34,12 @@ main:
 ; 链接命令 gcc -m32 elf.o -static
 ;  readelf -e elf.o
 ;   objdump -d a.out
+;   objdump -d a.out -nostartfile
 ;   objdump -d elf.o
 ;   objdump --help
 ;   objdump -d a.out -M intel    
 ;   gcc -m32 elf.o -static -nostartfiles    cannot find entry symbol _start; defaulting to 08049000
 ;   gcc -m32 elf.o -static -nostartfiles -e main
+;   gcc -m32 elf.o -static -nostartfiles -e main -no-pie
+;   
 

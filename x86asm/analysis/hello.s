@@ -1,4 +1,5 @@
 	.file	"hello.c"
+	.intel_syntax noprefix
 	.text
 	.section	.rodata
 .LC0:
@@ -9,15 +10,15 @@
 	.globl	main
 	.type	main, @function
 main:
-	pushl	%ebp
-	movl	%esp, %ebp
-	pushl	$.LC0
+	push	ebp
+	mov	ebp, esp
+	push	OFFSET FLAT:.LC0
 	call	puts
-	addl	$4, %esp
-	pushl	$.LC1
+	add	esp, 4
+	push	OFFSET FLAT:.LC1
 	call	puts
-	addl	$4, %esp
-	movl	$0, %eax
+	add	esp, 4
+	mov	eax, 0
 	leave
 	ret
 	.size	main, .-main

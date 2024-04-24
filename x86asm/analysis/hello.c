@@ -19,6 +19,21 @@ hello.s : hello.c
     andl	$-16, %esp      ; andl 0xffffffff0, %esp   栈对齐
     可以用 -mpreferred-stack-boundary=2 来去掉
 
+    AT&T汇编语法改为Intel语法  -masm=intel
+
+最终  	gcc -m32 -S $< -o hello.s -fno-asynchronous-unwind-tables -fno-pic -mpreferred-stack-boundary=2 -masm=intel
+main:
+	push	ebp
+	mov	ebp, esp  ;保存栈顶指针
+	push	OFFSET FLAT:.LC0
+	call	puts
+	add	esp, 4
+	push	OFFSET FLAT:.LC1
+	call	puts
+	add	esp, 4
+	mov	eax, 0
+	leave   ;等于 mov esp,ebp   pop ebp
+	ret
 
 
 */
