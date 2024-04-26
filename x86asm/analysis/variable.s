@@ -8,13 +8,13 @@
 a:
 	.zero	4
 	.globl	b
+	.data
 	.align 4
 	.type	b, @object
 	.size	b, 4
 b:
-	.zero	4
+	.long	305419896
 	.globl	c
-	.data
 	.align 4
 	.type	c, @object
 	.size	c, 4

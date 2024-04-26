@@ -1,11 +1,9 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        
         {
-            "name": "(gdb) Launch",
+            "name": "(gdb) Launch 1",
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
@@ -25,6 +23,31 @@
             "preLaunchTask": "C/C++: gcc build active file",
             "miDebuggerPath": "/usr/bin/gdb"
         }
-
+        // ,   
+        // {
+        //     "name": "(gdb) Launch 2",
+        //     "type": "cppdbg",
+        //     "request": "launch",
+        //     "program": "${fileDirname}/a.out",
+        //     "args": [],
+        //     "stopAtEntry": true,
+        //     "cwd": "${fileDirname}",
+        //     "environment": [],
+        //     "externalConsole": false,
+        //     "MIMode": "gdb",
+        //     "setupCommands": [
+        //         {
+        //             "description": "Enable pretty-printing for gdb",
+        //             "text": "-enable-pretty-printing",
+        //             "ignoreFailures": true
+        //         }
+        //     ],
+        //     "preLaunchTask": "preTest",
+        //     "miDebuggerPath": "/usr/bin/gdb",
+        //     // "configSource": "workspaceFolder",
+        //     // "detail": "preLaunchTask: C/C++: gcc build active file",
+        //     "existing": true,
+        //     "isDefault": true
+        // }
     ]
 }

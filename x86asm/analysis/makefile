@@ -1,3 +1,4 @@
+.PHONY : pass_variable.s hello.s   no_cfi    variable.s 
 CFLAGS:= -fno-asynchronous-unwind-tables \
 		-fno-pic \
 		-mpreferred-stack-boundary=2 	\
@@ -13,7 +14,6 @@ pass_variable.s : pass_variable.c
 	gcc -m32 -S $< -o $@   ${CFLAGS}
 
 
-.PHONY : hello.s  no_cfi
 
 
 
@@ -33,4 +33,7 @@ intel : hello.c
 	gcc -m32 -S $< -o hello.s -fno-asynchronous-unwind-tables -fno-pic -mpreferred-stack-boundary=2 -masm=intel
 
 %.o : %.c  
+	gcc -m32 $< -o $@ ${CFLAGS} -c
+
+%.out : %.c  
 	gcc -m32 $< -o $@ ${CFLAGS}
