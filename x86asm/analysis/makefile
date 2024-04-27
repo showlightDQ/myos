@@ -2,11 +2,11 @@
 CFLAGS:= -fno-asynchronous-unwind-tables \
 		-fno-pic \
 		-mpreferred-stack-boundary=2 	\
-		-fno-stack-protector \
 		-O0 \
-		-c \
-		-e main \
-		# -fno-builtin \
+		-fno-builtin \
+		# -fno-stack-protector \
+		# -c \
+		# -e main \
 
 
 		
@@ -15,11 +15,13 @@ CFLAGS:= -fno-asynchronous-unwind-tables \
 		#汇编代码不检查栈溢出
 
 		#-O0 optimise 优化级别
-		   
-		# -fno-builtin \
-		# -c  
-		# -e main\
-		# -masm=intel \
+		# -fno-stack-protector  取消栈保护
+		# -fno-pic  不使用位置无关代码
+		# -fno-asynchronous-unwind-tables  		   
+		# -fno-builtin  不用内建函数
+		# -c    编译为中间代码
+		# -e main   以main函数为入口
+		# -masm=intel   转换为intel的汇编码
 
 variable.s : variable.c 
 	gcc -m32 -S $< -o $@   ${CFLAGS}
