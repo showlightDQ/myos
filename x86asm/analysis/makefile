@@ -18,10 +18,13 @@ CFLAGS:= -fno-asynchronous-unwind-tables \
 		# -fno-stack-protector  取消栈保护
 		# -fno-pic  不使用位置无关代码
 		# -fno-asynchronous-unwind-tables  		   
-		# -fno-builtin  不用内建函数
+		# -fno-builtin  不用内建函数优化
+		# https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
 		# -c    编译为中间代码
 		# -e main   以main函数为入口
 		# -masm=intel   转换为intel的汇编码
+%.s : %.c  
+	gcc -m32 $< -S -o  $@ ${CFLAGS}
 
 variable.s : variable.c 
 	gcc -m32 -S $< -o $@   ${CFLAGS}
