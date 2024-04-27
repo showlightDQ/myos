@@ -1,17 +1,17 @@
-void fun1(){
-    static int a = 1;
-}
+#include <stdio.h>
 
-void fun2(void){
-    static int a = 2;
+int add(int a,int b )
+{
+    int c = a + b ;
+    return c;
 }
 int main()
 
 {
-    static int a = 3;
-    int b = 5;
-    fun2();
-    fun2();
+    int i = 5;
+    int j = 10;
+    int k = add (i,j);
+    printf("%d + %d = %d\n",i,j,k);
 
     return 0;
 } 

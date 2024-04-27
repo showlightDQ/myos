@@ -1,11 +1,25 @@
-.PHONY : pass_variable.s hello.s   no_cfi    variable.s 
+.PHONY : pass_variable.s hello.s   no_cfi    variable.s  overflow.s
 CFLAGS:= -fno-asynchronous-unwind-tables \
 		-fno-pic \
 		-mpreferred-stack-boundary=2 	\
-		-O0\
-		# -c
+		-fno-stack-protector \
+		-O0 \
+		-c \
+		-e main \
+		# -fno-builtin \
+
+
+		
+		
+		
+		#汇编代码不检查栈溢出
+
+		#-O0 optimise 优化级别
+		   
+		# -fno-builtin \
+		# -c  
 		# -e main\
-		# -masm=intel
+		# -masm=intel \
 
 variable.s : variable.c 
 	gcc -m32 -S $< -o $@   ${CFLAGS}
@@ -13,6 +27,9 @@ variable.s : variable.c
 pass_variable.s : pass_variable.c 
 	gcc -m32 -S $< -o $@   ${CFLAGS}
 
+overflow.s : overflow.c 
+	gcc -m32 -S $< -o $@   ${CFLAGS}
+	
 
 
 

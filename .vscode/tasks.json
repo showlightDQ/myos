@@ -7,7 +7,7 @@
             "args": [
                 "${file}",
                 "-m32",
-                // "-fdiagnostics-color=always",
+                "-fdiagnostics-color=always",
                 "-g",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
