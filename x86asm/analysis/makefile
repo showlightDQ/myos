@@ -3,11 +3,12 @@
 CC:=gcc  #"make test"命令时会自动执行 “CC ${CFLAGs} test.c -o test"，这个变量设定可以把cc换成gcc
 CFLAGS:= -fno-asynchronous-unwind-tables \
 		-fno-pic \
-		-mpreferred-stack-boundary=3 	\
+		-mpreferred-stack-boundary=2 	\
 		-O0 \
 		-fno-builtin \
 		-fverbose-asm  \
 		-m32 \
+		-static \
 		# -fno-stack-protector \
 		# -c \
 		# -e main \
@@ -17,7 +18,7 @@ CFLAGS:= -fno-asynchronous-unwind-tables \
 		#汇编代码不检查栈溢出
 
 		# -fverbose-asm 生成的汇编码中加入C原命令注释
-		#-O0 optimise 优化级别
+		# -O0 optimise 优化级别
 		# -fno-stack-protector  取消栈保护
 		# -fno-pic  不使用位置无关代码
 		# -fno-asynchronous-unwind-tables  		   
