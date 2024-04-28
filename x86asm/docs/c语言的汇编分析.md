@@ -39,3 +39,19 @@ main:
 	ret
 ```
 
+
+leal -1($eax),$edx  ;等效于edx = eax-1 ，不同于取地址的值，这里只是减1括号内的值
+lea 是Load Effective Address 的缩写。加载有效地址
+
+
+		# -fverbose-asm 生成的汇编码中加入C原命令注释
+		#-O0 optimise 优化级别
+		# -fno-stack-protector  取消栈保护
+		# -fno-pic  不使用位置无关代码
+		# -fno-asynchronous-unwind-tables  		   
+		# -fno-builtin  不用内建函数优化
+		# https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
+		# -c    编译为中间代码
+		# -e main   以main函数为入口
+		# -masm=intel   转换为intel的汇编码
+		# -fvergbose-asm  对应汇编码显示C语言命令

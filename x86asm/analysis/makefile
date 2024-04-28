@@ -1,9 +1,11 @@
-.PHONY : pass_variable.s hello.s   no_cfi    variable.s  overflow.s
+.PHONY :  %.s  #此句无用
+.PHONY : pass_variable.s hello.s   no_cfi    variable.s  overflow.s %.s
 CFLAGS:= -fno-asynchronous-unwind-tables \
 		-fno-pic \
 		-mpreferred-stack-boundary=2 	\
 		-O0 \
 		-fno-builtin \
+		-fverbose-asm  \
 		# -fno-stack-protector \
 		# -c \
 		# -e main \
@@ -14,6 +16,7 @@ CFLAGS:= -fno-asynchronous-unwind-tables \
 		
 		#汇编代码不检查栈溢出
 
+		# -fverbose-asm 生成的汇编码中加入C原命令注释
 		#-O0 optimise 优化级别
 		# -fno-stack-protector  取消栈保护
 		# -fno-pic  不使用位置无关代码
