@@ -10,10 +10,10 @@
 	.align 4
 	.type	data1, @object
 	.size	data1, 9
-data1:
+data1:`
 	.zero	9
 	.globl	data2
-	.align 4
+	.align 4c
 	.type	data2, @object
 	.size	data2, 9
 data2:
@@ -28,9 +28,14 @@ u2:
 	.align 4
 	.type	en, @object
 	.size	en, 4
+
+
 en:
 	.long	3
+
 	.text
+	
+	
 	.globl	main
 	.type	main, @function
 main:

@@ -1,17 +1,17 @@
 .PHONY :  %.s  #此句无用
 .PHONY : pass_variable.s hello.s   no_cfi    variable.s  overflow.s %.s
+CC:=gcc  #"make test"命令时会自动执行 “CC ${CFLAGs} test.c -o test"，这个变量设定可以把cc换成gcc
 CFLAGS:= -fno-asynchronous-unwind-tables \
 		-fno-pic \
-		-mpreferred-stack-boundary=2 	\
+		-mpreferred-stack-boundary=3 	\
 		-O0 \
 		-fno-builtin \
 		-fverbose-asm  \
+		-m32 \
 		# -fno-stack-protector \
 		# -c \
 		# -e main \
 
-
-		
 		
 		
 		#汇编代码不检查栈溢出
