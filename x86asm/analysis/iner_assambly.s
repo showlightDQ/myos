@@ -41,7 +41,7 @@ main:
 	pushl	$.LC0	#
 	call	printf	#
 	addl	$4, %esp	#,
-# iner_assambly.c:14:     asm(
+# iner_assambly.c:14:     asm volatile(
 #APP
 # 14 "iner_assambly.c" 1
 	
@@ -61,9 +61,8 @@ main:
 	pushl	$.LC1	#
 	call	printf	#
 	addl	$16, %esp	#,
-# iner_assambly.c:24:           return 0;
 	movl	$0, %eax	#, _8
-# iner_assambly.c:27: }
+# iner_assambly.c:26: }
 	leave	
 	ret	
 	.size	main, .-main

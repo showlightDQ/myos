@@ -25,6 +25,8 @@ CFLAGS:= -fno-asynchronous-unwind-tables \
 		# -fno-builtin  不用内建函数优化
 		# https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
 		# -c    编译为中间代码
+		# -S  编译为汇编代码
+		# -g  编译为可debug 的代码
 		# -e main   以main函数为入口
 		# -masm=intel   转换为intel的汇编码
 %.s : %.c  
@@ -63,3 +65,12 @@ intel : hello.c
 
 %.out : %.c  
 	gcc -m32 $< -o $@ ${CFLAGS}
+
+DEBUG := -g
+%.o : %.asm
+	nasm -f elf32 ${DEBUG} $< -o $@ 
+%.o : %.c 
+	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
+call.out :  call_add.o  call.o
+	gcc $(CFLAGS) $(DEBUG) $^ -o $@
+	
