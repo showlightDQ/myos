@@ -9,6 +9,9 @@ CFLAGS:= -fno-asynchronous-unwind-tables \
 		-fverbose-asm  \
 		-m32 \
 		-static \
+		-fomit-frame-pointer\
+
+
 		# -fno-stack-protector \
 		# -c \
 		# -e main \
@@ -29,6 +32,8 @@ CFLAGS:= -fno-asynchronous-unwind-tables \
 		# -g  编译为可debug 的代码
 		# -e main   以main函数为入口
 		# -masm=intel   转换为intel的汇编码
+		# -fomit-frame-pointer （忽略栈指针）编译时忽略函数内的栈顶转移和恢复操作
+		#                    即：push ebp ; mov ebp,esp......leave 
 %.s : %.c  
 	gcc -m32 $< -S -o  $@ ${CFLAGS}
 

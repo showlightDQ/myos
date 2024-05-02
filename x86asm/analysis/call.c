@@ -2,7 +2,12 @@
 
 extern int add(int  ,int );
 extern int __attribute__((fastcall)) sub(int ,int);
-
+void fomit(void)
+{
+    printf("gcc -fomit-frame-pointer\n");
+    //用-fomit-frame-pointer参数编译，可看到无栈移动编译的效果。
+    //一些编译器不支持这个参数。dbg是无法跟踪、回溯栈
+}
 int main(int argc, char const *argv[])
 {
 
@@ -20,7 +25,8 @@ int main(int argc, char const *argv[])
                     // call	sub	#
     printf("%d-%d=%d\n",i,j,k);
 
-    printf("argc=%d,argv=%s\n",argc,argv);
+    fomit();
+
     return 0;
 }
 
