@@ -1,6 +1,7 @@
 [bits 32]
 
 global add
+global sub
 extern printf
 
 
@@ -11,8 +12,6 @@ add:
     push message
     call printf
     add esp,4
-    
-
         ; 栈结构
         ; 调用前 push j; push i ; push eip 
         ; push ebp
@@ -26,6 +25,12 @@ add:
 
     leave
     ret
+
+sub:
+    sub ecx,edx
+    mov eax,ecx
+    ret
+
 
 section .data
     message db "add called",10,13,0 
