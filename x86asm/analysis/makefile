@@ -9,9 +9,10 @@ CFLAGS:= -fno-asynchronous-unwind-tables \
 		-fverbose-asm  \
 		-m32 \
 		-static \
-		-fomit-frame-pointer\
+		--verbose 
 
 
+		# -fomit-frame-pointer\
 		# -fno-stack-protector \
 		# -c \
 		# -e main \
@@ -27,13 +28,16 @@ CFLAGS:= -fno-asynchronous-unwind-tables \
 		# -fno-asynchronous-unwind-tables  		   
 		# -fno-builtin  不用内建函数优化
 		# https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
-		# -c    编译为中间代码
-		# -S  编译为汇编代码
-		# -g  编译为可debug 的代码
+		# -c    编译为中间代码 生成.o文件 gcc -c 其实是调用了 as -32 (as -32 $< -o $@)
+		# -S  编译为汇编代码  生成.s文件
+		# -g  编译为可debug 的代码  
 		# -e main   以main函数为入口
+		# -E 预处理
 		# -masm=intel   转换为intel的汇编码
 		# -fomit-frame-pointer （忽略栈指针）编译时忽略函数内的栈顶转移和恢复操作
 		#                    即：push ebp ; mov ebp,esp......leave 
+		# 链接 ld -m elf_i386 -static XXX.o -o XXX.out -e main
+		# gcc XX.c -o XX.out --verbose 显示完整编译命令		
 %.s : %.c  
 	gcc -m32 $< -S -o  $@ ${CFLAGS}
 
@@ -68,8 +72,14 @@ intel : hello.c
 %.o : %.c  
 	gcc -m32 $< -o $@ ${CFLAGS} -c
 
-%.out : %.c  
-	gcc -m32 $< -o $@ ${CFLAGS}
+%.o : %.s 
+	as -32 $< -o $@
+
+# %.out : %.c  
+# 	gcc -m32 $< -o $@ ${CFLAGS}
+
+test_link.out : test_link.o
+	ld -m elf_i386 -static $< -o $@ -e main
 
 DEBUG := -g
 %.o : %.asm
