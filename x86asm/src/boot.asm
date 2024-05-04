@@ -1,5 +1,5 @@
 org 0x7c00
-xchg bx,bx
+; xchg bx,bx
 
 mov ax,0x3
 int 0x10
@@ -21,7 +21,7 @@ mov sp,0x7c00
 
 call open_Int8
   
-xchg bx,bx
+; xchg bx,bx
     mov bl,10
     mov ecx,1
     mov edi,0x1000

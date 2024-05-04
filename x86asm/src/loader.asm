@@ -206,7 +206,7 @@ setup_page:
     ; mov [PDE + 0x3C0 * 4],eax 
     ; mov eax,0x000B8003
     ; mov [PTE + 0*4],eax 
-    xchg bx,bx
+    ; xchg bx,bx
     ;打开内存映射    
     mov eax , PDE 
     mov cr3, eax  ;装载映射表
@@ -215,7 +215,7 @@ setup_page:
     mov cr0, eax   ;开启映射 
     ret 
         .clear_page:
-        xchg bx,bx
+        ; xchg bx,bx
             mov ecx,0x400
             .loop_clear_page:
                 mov dword [eax+ecx*4],0x0
@@ -227,6 +227,7 @@ protect_mode_entrance:
         xchg bx,bx
         mov ax, data_selector
         mov ds, ax
+        mov ss, ax
         mov ax, test_selector
         mov es, ax  
         mov eax, code_selector
