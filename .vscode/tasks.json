@@ -27,7 +27,7 @@
         },
         {
             "type": "cppbuild",//"cppbuild" or "shell",
-            "label": "link call",
+            "label": "MAKE compile c",
             "command": "make",
             "args": [
                 "${fileBasenameNoExtension}.out",

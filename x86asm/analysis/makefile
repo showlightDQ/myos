@@ -1,5 +1,5 @@
 .PHONY :  %.s  #此句无用
-.PHONY : pass_variable.s hello.s   no_cfi    variable.s  overflow.s %.s
+.PHONY : clean pass_variable.s hello.s   no_cfi    variable.s  overflow.s %.s
 CC:=gcc  #"make test"命令时会自动执行 “CC ${CFLAGs} test.c -o test"，这个变量设定可以把cc换成gcc
 CFLAGS:= -fno-asynchronous-unwind-tables \
 		-fno-pic \
@@ -9,9 +9,9 @@ CFLAGS:= -fno-asynchronous-unwind-tables \
 		-fverbose-asm  \
 		-m32 \
 		-static \
-		--verbose 
 
 
+		# --verbose 
 		# -fomit-frame-pointer\
 		# -fno-stack-protector \
 		# -c \
@@ -75,17 +75,25 @@ intel : hello.c
 %.o : %.s 
 	as -32 $< -o $@
 
-# %.out : %.c  
-# 	gcc -m32 $< -o $@ ${CFLAGS}
-
-test_link.out : test_link.o
-	ld -m elf_i386 -static $< -o $@ -e main
+%.out : %.c  
+	gcc -m32 $< -o $@ ${CFLAGS}
+%.out : %.o 
+	gcc -m32 $< -o $@ ${CFLAGS}
 
 DEBUG := -g
 %.o : %.asm
 	nasm -f elf32 ${DEBUG} $< -o $@ 
 %.o : %.c 
 	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
-call.out :  call_add.o  call.o
+
+string_in_c_and_asm.out : string_in_c_and_asm.o  string_in_asm_amemcpy.o 
 	gcc $(CFLAGS) $(DEBUG) $^ -o $@
+
+call.out :  call_add.o  call.o
+	ld -m elf_i386 -static $^ -o $@ -e main
 	
+test_link.out : test_link.o
+	ld -m elf_i386 -static $< -o $@ -e main
+
+clean :
+	rm -rf *.o

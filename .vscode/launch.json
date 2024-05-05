@@ -24,7 +24,7 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
-            "name": "Launch Call",
+            "name": "debug MAKED",
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}.out",
@@ -41,7 +41,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "link call",
+            "preLaunchTask": "MAKE compile c",
             "miDebuggerPath": "/usr/bin/gdb"
         }
         // ,   

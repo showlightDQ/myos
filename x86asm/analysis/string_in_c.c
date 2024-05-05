@@ -5,7 +5,7 @@ void *memcpy(void *dest, const void *src, size_t count)
 {
     char *dptr = dest;
     const char *sptr = src;
-    for (size_t i = 0; i < count; `)
+    for (size_t i = 0; i < count; )
     {
         dptr[i] = sptr[i];
     }

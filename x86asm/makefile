@@ -75,4 +75,4 @@ CFLAGS:=-m32 \
 		# -fomit-frame-pointer （忽略栈指针）编译时忽略函数内的栈顶转移和恢复操作
 		#                    即：push ebp ; mov ebp,esp......leave 
 		# 链接 ld -m elf_i386 -static XXX.o -o XXX.out -e main
-		# gcc XX.c -o XX.out --verbose 显示完整编译命令		
+		#  --verbose   ：gcc XX.c -o XX.out --verbose 显示完整编译过程		
