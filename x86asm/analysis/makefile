@@ -87,7 +87,8 @@ DEBUG := -g
 	nasm -f elf32 ${DEBUG} $< -o $@ 
 %.o : %.c 
 	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
-
+%.bin : %.asm
+	nasm $< -o  $@ ${DEBUG}
 string_in_c_and_asm.out : string_in_c_and_asm.o  string_in_asm_amemcpy.o 
 	gcc $(CFLAGS) $(DEBUG) $^ -o $@
 
