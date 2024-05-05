@@ -80,6 +80,8 @@ intel : hello.c
 %.out : %.o 
 	gcc -m32 $< -o $@ ${CFLAGS}
 
+
+
 DEBUG := -g
 %.o : %.asm
 	nasm -f elf32 ${DEBUG} $< -o $@ 
