@@ -13,7 +13,9 @@ mov ax,0xb800
 mov ds,ax
 mov byte [0],'H'
 
-
+mov edi,0x2000
+mov ecx,1
+ 
 
 
 jmp $
