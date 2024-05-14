@@ -51,7 +51,7 @@ CFLAGS:=-m32 \
 		# -nodefaultlibs   不使用默认库
 		# -nostdinc   不使用标准include
 		# -nostartfiles  不使用startfiles
-		# -fomit-frame-pointer  忽略栈指引
+		# -fomit-frame-pointer  忽略栈指针
 		# -fno-stack-protector   不使用栈保护
 	
 

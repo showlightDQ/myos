@@ -1,17 +1,52 @@
-.PHONY : clean  bochs 
+.PHONY : clean  bochs test
+BUILD := ../build
+SRC   := .
+KERNEL :=./kernel
+ENTRYPOINT := 0x10000
+CFLAGS:= -m32 
 
 
-%.bin : %.asm
-	nasm -f bin $< -o $@
+DEBUG:= -g
+INCLUDE:= -I $(SRC)/include 
 
-master.img : boot.bin
-	yes | bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $@
-	dd if=boot.bin of=$@ bs=512 count=1 conv=notrunc
+
+
+master.img : boot.bin \
+		loader.bin \
+		system.bin \
+		system.map \
+
+	yes | bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $(BUILD)/$@
+	dd if=$(BUILD)/boot/boot.bin   of=$(BUILD)/$@ bs=512 count=1   conv=notrunc seek=0
+	dd if=$(BUILD)/boot/loader.bin of=$(BUILD)/$@ bs=512 count=3   conv=notrunc seek=1
+	dd if=$(BUILD)/system.bin of=$(BUILD)/$@ bs=512 count=200 conv=notrunc seek=4
+  
+%.o : $(SRC)/kernel/%.c 
+	$(shell mkdir -p ${BUILD}/kernel/)
+	gcc $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o ${BUILD}/kernel/$@
+%.o : $(SRC)/kernel/%.asm
+	$(shell mkdir -p ${BUILD}/kernel/)
+	nasm -f elf32 $< -o ${BUILD}/kernel/$@
+%.bin : ${SRC}/boot/%.asm
+	$(shell mkdir -p ${BUILD}/boot/)
+	nasm -f bin $< -o ${BUILD}/boot/$@
+%.bin  : %.o     $(build)/kernel/main.o
+	ld -m elf_i386 -static $(BUILD)/kernel/$^ -o $(BUILD)/kernel/$@ -Ttext $(ENTRYPOINT)
+system.bin : kernel.bin 
+	objcopy -O binary $(BUILD)/kernel/$< $(BUILD)/$@  # 展开.bss等空间，去掉头信息等内容
+
+system.map : kernel.bin
+	nm $(BUILD)/kernel/$< | sort > $(BUILD)/$@ 
+
 
 clean:
-	rm -rf *.bin
-	rm -rf *img
+	# rm -rf $(BUILD)/boot/*.bin
+	rm -rf $(BUILD)/*.img
+	rm -rf $(BUILD)/*.img.lock
+	# rm -rf ../*.o
+	# rm -rf ../*.bin
 	rm -rf bx_enh_dbg.ini
-
-bochs:master.img
+	find .. -type f -name "*.bin" 	-exec rm -f {} \;
+	find .. -type f -name "*.o" 	-exec rm -f {} \;
+bochs : master.img
 	bochs -f bochsConfiguration -q  
