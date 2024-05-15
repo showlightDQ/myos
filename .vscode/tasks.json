@@ -1,16 +1,17 @@
 {
     "tasks": [
         {
-            "type": "shell",//"cppbuild",
-            "label": "C/C++: gcc build active file",
+            "type": "cppbuild",//"cppbuild",
+            "label": "test types C/C++: gcc build active file",
             "command": "/usr/bin/gcc",
             "args": [
                 "${file}",
                 "-m32",
-                "-fdiagnostics-color=always",
                 "-g",
+                "-I${workspaceFolder}/ONIX/src/include",
+                "-fdiagnostics-color=always",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}",
+                "${fileDirname}/${fileBasenameNoExtension}.out",
                 // "-static"
             ],
             "options": {

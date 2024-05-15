@@ -4,6 +4,14 @@ SRC   := .
 KERNEL :=./kernel
 ENTRYPOINT := 0x10000
 CFLAGS:= -m32 
+CFLAGS+= -fno-builtin
+CFLAGS+= -nostdinc 
+CFLAGS+= -fno-pic
+CFLAGS+= -fno-pie
+CFLAGS+= -nostdlib
+CFLAGS+= -fno-stack-protector
+CFLAGS:=$(strip $(CFLAGS))
+
 
 
 DEBUG:= -g
@@ -29,9 +37,9 @@ master.img : boot.bin \
 	nasm -f elf32 $< -o ${BUILD}/kernel/$@
 %.bin : ${SRC}/boot/%.asm
 	$(shell mkdir -p ${BUILD}/boot/)
-	nasm -f bin $< -o ${BUILD}/boot/$@
-%.bin  : %.o     $(build)/kernel/main.o
-	ld -m elf_i386 -static $(BUILD)/kernel/$^ -o $(BUILD)/kernel/$@ -Ttext $(ENTRYPOINT)
+	nasm -f bin ${DEBUG} $< -o ${BUILD}/boot/$@
+%.bin: %.o main.o	
+	 ld -m elf_i386 -static $(BUILD)/kernel/$(word 1,$^)  $(BUILD)/kernel/$(word 2,$^)  -o $(BUILD)/kernel/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
 	objcopy -O binary $(BUILD)/kernel/$< $(BUILD)/$@  # 展开.bss等空间，去掉头信息等内容
 
@@ -48,5 +56,10 @@ clean:
 	rm -rf bx_enh_dbg.ini
 	find .. -type f -name "*.bin" 	-exec rm -f {} \;
 	find .. -type f -name "*.o" 	-exec rm -f {} \;
+
 bochs : master.img
 	bochs -f bochsConfiguration -q  
+
+test :
+	echo $(CFLAGS)
+
