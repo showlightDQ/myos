@@ -6,3 +6,4 @@ x86asm/build/bx_enh_dbg.ini
 *.out
 *.bin
 *.img
+ONIX/bochs/bochs-2.8
