@@ -1,4 +1,4 @@
-.PHONY : clean  bochs test
+.PHONY : clean  bochs test bochsg
 BUILD := ../build
 SRC   := .
 KERNEL :=./kernel
@@ -58,8 +58,10 @@ clean:
 	find .. -type f -name "*.o" 	-exec rm -f {} \;
 
 bochs : master.img
-	bochs -f bochsConfiguration -q  
+	bochs -f ../bochs/bochsConfiguration -q  
 
+bochsg : master.img
+	bochs-gdb -f ../bochs/bochsrc_gdb -q  
 test :
 	echo $(CFLAGS)
 
