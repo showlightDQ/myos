@@ -33,6 +33,8 @@ cpuid: mmx=true, apic=xapic, simd=sse2, sse4a=false, misaligned_sse=false, sep=t
 cpuid: movbe=false, adx=false, aes=false, sha=false, xsave=false, xsaveopt=false, smep=false
 cpuid: smap=false, mwait=true
 print_timestamps: enabled=0
+gdbstub: enabled=1, port=1234, text_base=0, data_base=0, bss_base=0
+
 debugger_log: -
 magic_break: enabled=1
 port_e9_hack: enabled=0
