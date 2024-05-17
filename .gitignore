@@ -6,7 +6,7 @@ x86asm/build/bx_enh_dbg.ini
 *.out
 *.bin
 *.img
-ONIX/bochs
+ONIX/bochs/
 !ONIX/bochs/bochsr*
-ONIX/tools
+ONIX/tools/
 
