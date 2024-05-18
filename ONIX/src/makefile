@@ -62,6 +62,20 @@ bochs : master.img
 
 bochsg : master.img
 	bochs-gdb -f ../bochs/bochsrc_gdb -q  
+
+qemu : master.img 
+	qemu-system-i386 \
+	-m 32M \
+	-boot c \
+	-hda $(BUILD)/$<  
+	
+qemug : master.img 
+	qemu-system-i386 \
+	-m 32M \
+	-boot c \
+	-hda $(BUILD)/$< \
+	-s -S
+	 
 test :
-	echo $(CFLAGS)
+	@echo CFLAGS = $(CFLAGS)
 
