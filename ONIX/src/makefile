@@ -74,7 +74,10 @@ qemug : master.img
 	-m 32M \
 	-boot c \
 	-hda $(BUILD)/$< \
-	-s -S
+	-s -S     # 暂停，等待1234端口信号
+
+vmdk : master.img
+	qemu-img convert -pO  vmdk $(BUILD)/$< $(BUILD)/master.$@
 	 
 test :
 	@echo CFLAGS = $(CFLAGS)
