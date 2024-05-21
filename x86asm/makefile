@@ -53,12 +53,6 @@ CFLAGS:=-m32 \
 		# -nostartfiles  不使用startfiles
 		# -fomit-frame-pointer  忽略栈指针
 		# -fno-stack-protector   不使用栈保护
-	
-
-		
-		
-		#汇编代码不检查栈溢出
-
 		# -fverbose-asm 生成的汇编码中加入C原命令注释
 		# -O0 optimise 优化级别
 		# -fno-stack-protector  取消栈保护

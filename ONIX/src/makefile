@@ -12,7 +12,31 @@ CFLAGS+= -nostdlib
 CFLAGS+= -fno-stack-protector
 CFLAGS:=$(strip $(CFLAGS))
 
-
+	# -fno-pie  不生成位置无关的可执行文件
+		# --verbose  显示编译命令细节
+		# -nostdlib   不使用标准库
+		# -nodefaultlibs   不使用默认库
+		# -nostdinc   不使用标准include
+		# -nostartfiles  不使用startfiles
+		# -fomit-frame-pointer  忽略栈指针
+		# -fno-stack-protector   不使用栈保护
+		# -fverbose-asm 生成的汇编码中加入C原命令注释
+		# -O0 optimise 优化级别
+		# -fno-stack-protector  取消栈保护
+		# -fno-pic  不使用位置无关代码
+		# -fno-asynchronous-unwind-tables  		   
+		# -fno-builtin  不用内建函数优化
+		# https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
+		# -c  编译为中间代码 生成.o文件 gcc -c 其实是调用了 as -32 (as -32 $< -o $@)
+		# -S  编译为汇编代码  生成.s文件
+		# -g  编译为可debug 的代码  
+		# -e main   以main函数为入口
+		# -E 预处理
+		# -masm=intel   转换为intel的汇编码
+		# -fomit-frame-pointer （忽略栈指针）编译时忽略函数内的栈顶转移和恢复操作
+		#                    即：push ebp ; mov ebp,esp......leave 
+		# 链接 ld -m elf_i386 -static XXX.o -o XXX.out -e main
+		#  --verbose   ：gcc XX.c -o XX.out --verbose 显示完整编译过程	
 
 DEBUG:= -g
 INCLUDE:= -I $(SRC)/include 
