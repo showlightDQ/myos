@@ -19,15 +19,30 @@ char buf[1024];   //.bss
 
 void kernel_init()
 {
-     char* show = (char*)0xb8000;
-     for (int i = 0; i<sizeof(message); i++)
-     {
-        show[i*2] = message[i];
-        u8 data = 22; 
-      //   *show = message[i];
-      //   show += 2;
-     }
+     // char* show = (char*)0xb8000;
+     // for (int i = 0; i<sizeof(message); i++)
+     // {
+     //    show[i*2] = message[i];
+     //      data = inb(CRT_DATA_REG);
+        
+     //  //   *show = message[i];
+     //  //   show += 2;
+     // }
+     u16 cursorPosation;
+     outb(CRT_ADDR_REG, CRT_CURSOR_H);
+     cursorPosation = inb (CRT_DATA_REG) << 8;     
+     outb(CRT_ADDR_REG, CRT_CURSOR_L);
+     cursorPosation |= inb (CRT_DATA_REG) ;   
 
+     outb(CRT_ADDR_REG, CRT_CURSOR_H); 
+     outb(CRT_DATA_REG, 0);
+     outb(CRT_ADDR_REG, CRT_CURSOR_L); 
+     outb(CRT_DATA_REG, 81);
+
+ 
      u8 data = inb(CRT_DATA_REG);
+
+     return;
+
      
 }
