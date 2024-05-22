@@ -28,7 +28,7 @@ typedef unsigned short u16 ;
 typedef unsigned int u32 ;
 typedef unsigned long long u64 ;
 # 4 "../include/onix/io.h" 2
-# 12 "../include/onix/io.h"
+
     extern u8 inb(u16 port);
     extern u16 inw(u16 port);
 
@@ -49,7 +49,7 @@ typedef unsigned short u16 ;
 typedef unsigned int u32 ;
 typedef unsigned long long u64 ;
 # 4 "main.c" 2
-
+# 14 "main.c"
 int magic = 20240514;
 char message[] = "hello onix!!!";
 char buf[1024];

@@ -2,6 +2,15 @@
 #include "onix/io.h"
 #include "onix/types.h"
 
+
+
+#define CRT_ADDR_REG 0x3d4 
+#define CRT_DATA_REG 0x3d5
+
+#define CRT_CURSOR_H 0xe
+#define CRT_CURSOR_L 0xf
+
+
 int magic = ONIX_MAGIC;
 char message[] = "hello onix!!!";  //.data
 char buf[1024];   //.bss

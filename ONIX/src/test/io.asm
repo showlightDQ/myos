@@ -8,7 +8,7 @@ inb:
     mov ebp,esp
 
     xor eax,eax ;
-     mov edx,[ebp + 8] 
+    mov edx,[ebp + 8] 
     in al,dx
 
     jmp $+2

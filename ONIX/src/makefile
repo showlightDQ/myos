@@ -1,6 +1,6 @@
 .PHONY : clean  bochs test bochsg
-BUILD := ../build
-SRC   := .
+BUILD :=../build
+SRC   :=.
 KERNEL :=./kernel
 ENTRYPOINT := 0x10000
 CFLAGS:= -m32 
@@ -39,8 +39,53 @@ CFLAGS:=$(strip $(CFLAGS))
 		#  --verbose   ：gcc XX.c -o XX.out --verbose 显示完整编译过程	
 
 DEBUG:= -g
-INCLUDE:= -I $(SRC)/include 
+INCLUDE:= -I$(SRC)/include 
+# ...........................chou chu moon...................................
+$(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
+	$(shell mkdir -p $(dir $@))
+	nasm -f bin $< -o $@
 
+$(BUILD)/%.o: $(SRC)/%.asm
+	$(shell mkdir -p $(dir $@))
+	nasm -f elf32 $(DEBUG) $< -o $@
+
+$(BUILD)/%.o: $(SRC)/%.c
+	$(shell mkdir -p $(dir $@))
+	gcc $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o $@
+
+$(BUILD)/kernel.bin: \
+	$(BUILD)/kernel/kernel.o \
+	$(BUILD)/kernel/main.o \
+	$(BUILD)/kernel/io.o \
+
+
+	$(shell mkdir -p $(dir $@))
+	ld -m elf_i386 -static $^ -o $@ -Ttext $(ENTRYPOINT)
+
+$(BUILD)/system.bin: $(BUILD)/kernel.bin
+	objcopy -O binary $< $@
+
+$(BUILD)/system.map: $(BUILD)/kernel.bin
+	nm $< | sort > $@
+
+$(BUILD)/master.img: $(BUILD)/boot/boot.bin \
+	$(BUILD)/boot/loader.bin \
+	$(BUILD)/system.bin \
+	$(BUILD)/system.map  
+
+	yes | bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $@
+	dd if=$(BUILD)/boot/boot.bin of=$@ bs=512 count=1 conv=notrunc
+	dd if=$(BUILD)/boot/loader.bin of=$@ bs=512 count=3 seek=1 conv=notrunc
+	dd if=$(BUILD)/system.bin of=$@ bs=512 count=200 seek=4 conv=notrunc
+# .....................................................................
+
+
+qemug2 : $(BUILD)/master.img
+	qemu-system-i386 \
+	-m 32M \
+	-boot c \
+	-hda $< \
+	-s -S     # 暂停，等待1234端口信号
 
 
 master.img : boot.bin \
@@ -55,20 +100,26 @@ master.img : boot.bin \
   
 %.o : $(SRC)/kernel/%.c 
 	$(shell mkdir -p ${BUILD}/kernel/)
-	gcc $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o ${BUILD}/kernel/$@
+	gcc $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o ${BUILD}/$@
+
 %.o : $(SRC)/kernel/%.asm
-	$(shell mkdir -p ${BUILD}/kernel/)
-	nasm -f elf32 $< -o ${BUILD}/kernel/$@
+	$(shell mkdir -p ${BUILD}/kernel/) 
+	nasm -f elf32 $(DEBUG) $< -o ${BUILD}/$@    
+
 %.bin : ${SRC}/boot/%.asm
 	$(shell mkdir -p ${BUILD}/boot/)
-	nasm -f bin ${DEBUG} $< -o ${BUILD}/boot/$@
-%.bin: %.o main.o	
-	 ld -m elf_i386 -static $(BUILD)/kernel/$(word 1,$^)  $(BUILD)/kernel/$(word 2,$^)  -o $(BUILD)/kernel/$@ -Ttext $(ENTRYPOINT)
+	nasm -f bin ${DEBUG} $< -o ${BUILD}/boot/$@ 
+%.bin:  %.o  main.o  io.o      # 此处 文件先后 可能影响 dbg 的效果。
+	ld -m elf_i386 -static \
+	$(BUILD)/$(word 1,$^) \
+	$(BUILD)/$(word 2,$^)  \
+	$(BUILD)/$(word 3,$^)  \
+	-o $(BUILD)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
-	objcopy -O binary $(BUILD)/kernel/$< $(BUILD)/$@  # 展开.bss等空间，去掉头信息等内容
+	objcopy -O binary $(BUILD)/$< $(BUILD)/$@  # 展开.bss等空间，去掉头信息等内容
 
 system.map : kernel.bin
-	nm $(BUILD)/kernel/$< | sort > $(BUILD)/$@ 
+	nm $(BUILD)/$< | sort > $(BUILD)/$@ 
 
 
 clean:

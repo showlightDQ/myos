@@ -14,3 +14,4 @@
 build
 bochs/src
 bochs/pkg
+*system.map

@@ -1,5 +1,7 @@
 00010000 T _start
-00010014 T kernel_init
+0001000e T kernel_init
+00010070 T inb
+00010081 T inw
 00012000 D magic
 00012004 D message
 00012012 D _edata

@@ -2,11 +2,39 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "bochs_gdb",
+            "name": "kernel_gdb",
             "type": "cppdbg",
             "request": "launch",
             // "program": "${fileDirname}/${fileBasenameNoExtension}.bin",
-            "program": "${workspaceFolder}/ONIX/build/kernel/kernel.bin",
+            "program": "${workspaceFolder}/ONIX/build/kernel.bin",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/ONIX/build/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerServerAddress": "localhost:1234",
+            "setupCommands": [
+                { 
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            // "preLaunchTask": "test types C/C++: gcc build active file",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "qemug",
+            "type": "cppdbg",
+            "request": "launch",
+            // "program": "${fileDirname}/${fileBasenameNoExtension}.bin",
+            "program": "${workspaceFolder}/ONIX/build/kernel/io.o",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${fileDirname}",
