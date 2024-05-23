@@ -1,6 +1,7 @@
 #include "onix/onix.h"
 #include "onix/io.h"
 #include "onix/types.h"
+#include "onix/string.h"
 
 
 
@@ -41,6 +42,21 @@ void kernel_init()
 
  
      u8 data = inb(CRT_DATA_REG);
+     size_t count = strlen(message);
+     u8* strcpyOC ;
+     char* pri = 0xb8000;
+     strcpyOC = strcpy(pri,"haha");
+     strcpyOC = strncpy(pri, message,20);
+     int cmp1 = strcmp("abc","abcd");
+     int cmp2 = strcmp("abc","abc");
+     int cmp3 = strcmp("","");
+     int cmp4 = strcmp("12","1");
+     strncpy (buf,"abc",10);
+     strncpy (buf,"abc",0);
+     strncpy (buf,"abcdefg",4);
+     strncpy (buf,"",4);
+
+
 
      return;
 

@@ -102,6 +102,10 @@ master.img : boot.bin \
 	$(shell mkdir -p ${BUILD}/kernel/)
 	gcc $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o ${BUILD}/$@
 
+%.o : $(SRC)/lib/%.c 
+	$(shell mkdir -p ${BUILD}/kernel/)
+	gcc $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o ${BUILD}/$@
+
 %.o : $(SRC)/kernel/%.asm
 	$(shell mkdir -p ${BUILD}/kernel/) 
 	nasm -f elf32 $(DEBUG) $< -o ${BUILD}/$@    
@@ -109,11 +113,12 @@ master.img : boot.bin \
 %.bin : ${SRC}/boot/%.asm
 	$(shell mkdir -p ${BUILD}/boot/)
 	nasm -f bin ${DEBUG} $< -o ${BUILD}/boot/$@ 
-%.bin:  %.o  main.o  io.o      # 此处 文件先后 可能影响 dbg 的效果。
+%.bin:  %.o  main.o  io.o  string.o     # 此处 文件先后 可能影响 dbg 的效果。
 	ld -m elf_i386 -static \
 	$(BUILD)/$(word 1,$^) \
 	$(BUILD)/$(word 2,$^)  \
 	$(BUILD)/$(word 3,$^)  \
+	$(BUILD)/$(word 4,$^)  \
 	-o $(BUILD)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
 	objcopy -O binary $(BUILD)/$< $(BUILD)/$@  # 展开.bss等空间，去掉头信息等内容
