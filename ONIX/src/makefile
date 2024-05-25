@@ -39,7 +39,7 @@ CFLAGS:=$(strip $(CFLAGS))
 		#  --verbose   ：gcc XX.c -o XX.out --verbose 显示完整编译过程	
 
 DEBUG:= -g
-INCLUDE:= -I$(SRC)/include 
+INCLUDE:= -I$(SRC)/include
 # ...........................chou chu moon...................................
 $(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
 	$(shell mkdir -p $(dir $@))
@@ -113,12 +113,13 @@ master.img : boot.bin \
 %.bin : ${SRC}/boot/%.asm
 	$(shell mkdir -p ${BUILD}/boot/)
 	nasm -f bin ${DEBUG} $< -o ${BUILD}/boot/$@ 
-%.bin:  %.o  main.o  io.o  string.o     # 此处 文件先后 可能影响 dbg 的效果。
+%.bin:  %.o  main.o  io.o  string.o console.o    # 此处 文件先后 可能影响 dbg 的效果。
 	ld -m elf_i386 -static \
 	$(BUILD)/$(word 1,$^) \
 	$(BUILD)/$(word 2,$^)  \
 	$(BUILD)/$(word 3,$^)  \
 	$(BUILD)/$(word 4,$^)  \
+	$(BUILD)/$(word 5,$^)  \
 	-o $(BUILD)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
 	objcopy -O binary $(BUILD)/$< $(BUILD)/$@  # 展开.bss等空间，去掉头信息等内容

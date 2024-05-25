@@ -2,6 +2,8 @@
 #include "onix/io.h"
 #include "onix/types.h"
 #include "onix/string.h"
+// #include <string.h>
+#include "onix/console.h"
 
 
 
@@ -29,22 +31,12 @@ void kernel_init()
      //  //   *show = message[i];
      //  //   show += 2;
      // }
-     u16 cursorPosation;
-     outb(CRT_ADDR_REG, CRT_CURSOR_H);
-     cursorPosation = inb (CRT_DATA_REG) << 8;     
-     outb(CRT_ADDR_REG, CRT_CURSOR_L);
-     cursorPosation |= inb (CRT_DATA_REG) ;   
-
-     outb(CRT_ADDR_REG, CRT_CURSOR_H); 
-     outb(CRT_DATA_REG, 0);
-     outb(CRT_ADDR_REG, CRT_CURSOR_L); 
-     outb(CRT_DATA_REG, 81);
-
+   
  
      u8 data = inb(CRT_DATA_REG);
      size_t count = strlen(message);
      u8* strcpyOC ;
-     char* pri = 0xb8000;
+     char* pri = (char*) 0xb8000;
      strcpyOC = strcpy(pri,"haha");
      strcpyOC = strncpy(pri, message,20);
      int cmp1 = strcmp("abc","abcd");
@@ -56,7 +48,7 @@ void kernel_init()
      strncpy (buf,"abcdefg",4);
      strncpy (buf,"",4);
 
-
+     console_init();
 
      return;
 
