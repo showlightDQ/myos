@@ -47,8 +47,9 @@ void kernel_init()
      strncpy (buf,"abc",0);
      strncpy (buf,"abcdefg",4);
      strncpy (buf,"",4);
-
+     int so = sizeof(message);
      console_init();
+     console_write(message,so);
 
      return;
 
