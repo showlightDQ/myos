@@ -119,7 +119,7 @@ void *memset(void *dest, int ch, size_t count)
     {
         *ptr++ = ch;
     }
-    return dest;
+    // return dest;
 }
 
 void *memcpy(void *dest, const void *src, size_t count)
@@ -129,7 +129,7 @@ void *memcpy(void *dest, const void *src, size_t count)
     {
         *ptr++ = *((char *)(src++));
     }
-    return dest;
+    // return dest;
 }
 
 void *memchr(const void *str, int ch, size_t count)

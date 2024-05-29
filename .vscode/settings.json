@@ -4,6 +4,7 @@
         "onix.h": "c",
         "console.h": "c",
         "cstring": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "variant": "c"
     }
 }

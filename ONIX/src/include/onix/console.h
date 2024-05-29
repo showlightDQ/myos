@@ -2,7 +2,9 @@
     #define ONIX_CONSOLE_H
 
     #include <onix/types.h>
-
+    #include<onix/io.h>
+    #include<onix/string.h>
+    
     void console_init();
     void console_clear();
     void put_chars(char* str);

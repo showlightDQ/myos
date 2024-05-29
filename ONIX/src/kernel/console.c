@@ -1,5 +1,4 @@
 #include<onix/console.h>
-#include<onix/io.h>
 
 #define CRT_ADDR_REG 0x3d4   //CRT(6845)索引寄存器
 #define CRT_DATA_REG 0x3d5   //CRT(6845)数据寄存器
@@ -70,7 +69,7 @@ static void set_cursor()
 {
     //  
     outb (CRT_ADDR_REG , CRT_CURSOR_H);
-    outb (CRT_DATA_REG ,((pos - MEM_BASE) >> 9 ) & 0xff ) ;
+    outb (CRT_DATA_REG ,((pos - MEM_BASE) >> 9 ) & 0xff ) ;     //搞清楚：cursor 到底是相对 MEM_BASE的，还是相对于SCREEN的。
     outb (CRT_ADDR_REG , CRT_CURSOR_L);
     outb (CRT_DATA_REG ,((pos - MEM_BASE) >> 1 ) & 0xff ) ;
     
@@ -113,17 +112,30 @@ void console_clear()
  // 字符命令
     static void scroll_up()
     {
-
+        screen += ROW_SIZE;
+        set_screen();
     }
     static void command_lf()  // 换行
     {
-        if  (y + 1 < HEIGHT )
+        if(pos> MEM_BASE + MEM_SIZE - ROW_SIZE)  //如果光标在显存范围的最后一行，把当前屏复制到MEM_BASE起始的地方，清空后面的内容。
         {
+            
+            memcpy((void*)MEM_BASE, (void*)(MEM_BASE + MEM_SIZE - SCR_SIZE,SCR_SIZE));
+            memset((void*)(MEM_BASE + SCR_SIZE), (char)0, MEM_BASE+MEM_SIZE-SCR_SIZE);
+            pos = pos - screen + MEM_BASE;
+            screen = MEM_BASE;
+            set_screen();
+        }
+        if  (y == HEIGHT )
+        {
+            screen += ROW_SIZE;
+            y--;
+            set_screen();
+        }
         pos += ROW_SIZE;
         y++;
         set_cursor();
-        }
-        scroll_up();
+       
     }
     static void command_cr()  // 回车（不换行）
     {
