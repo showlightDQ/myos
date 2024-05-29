@@ -135,8 +135,7 @@ void console_clear()
         pos += ROW_SIZE;
         y++;
         set_cursor();
-       
-
+    
 
        fdf
     }
