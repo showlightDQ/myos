@@ -136,6 +136,9 @@ void console_clear()
         y++;
         set_cursor();
        
+
+
+       fdf
     }
     static void command_cr()  // 回车（不换行）
     {
