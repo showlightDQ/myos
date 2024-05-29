@@ -10,6 +10,7 @@ char* strcpy(char* dest, const char* src)
     return dest;
 }
 
+
 char* strcat(char* dest , const char* src)
 {
     char* ptr= dest;
