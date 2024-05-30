@@ -31,7 +31,7 @@ static u32 screen = MEM_BASE;  //当前显示器的起始位置  （内存地址
 static u32 pos = MEM_BASE; //当前光标位置  （内存地址）
 static int  x, y;   //光标在当前屏幕上的显示位置。与pos
 
-static u8 attr = 7;
+static u8 attr = 7;  // 字符样式
 static u16 erase = 0x0720 ;  //空格
 
 void put_chars(char* str)
@@ -43,9 +43,6 @@ void put_chars(char* str)
     }
     set_cursor();
 }
-
-
-
 
 static void set_screen()
 {
@@ -120,7 +117,7 @@ void console_clear()
         if(pos> MEM_BASE + MEM_SIZE - ROW_SIZE)  //如果光标在显存范围的最后一行，把当前屏复制到MEM_BASE起始的地方，清空后面的内容。
         {
             
-            memcpy((void*)MEM_BASE, (void*)(MEM_BASE + MEM_SIZE - SCR_SIZE,SCR_SIZE));
+            memcpy((void*)MEM_BASE, (void*)(MEM_BASE + MEM_SIZE - SCR_SIZE),SCR_SIZE);
             memset((void*)(MEM_BASE + SCR_SIZE), (char)0, MEM_BASE+MEM_SIZE-SCR_SIZE);
             pos = pos - screen + MEM_BASE;
             screen = MEM_BASE;
@@ -135,9 +132,6 @@ void console_clear()
         pos += ROW_SIZE;
         y++;
         set_cursor();
-    
-
-       fdf
     }
     static void command_cr()  // 回车（不换行）
     {
@@ -147,18 +141,19 @@ void console_clear()
     }
     static void command_bs()  //退格
     {
-        pos -= 2;
-        *(u16 *)pos = erase;
-        set_cursor();
-        if(x)
-            {
-                x--;
-            }
-            else
-            {
-                y -= 1;
-                x = WIDTH;
-            }
+        //问题出在这里！！！！！
+        // set_cursor();
+        // if(x)
+        //     {
+        //         pos -= 2;
+        //         *(u16 *)pos = erase;     
+        //         x--;
+        //     }
+        //     else
+        //     {
+        //         y -= 1;
+        //         x = WIDTH;
+        //     }
     }
     static void command_del()  // DEL 键
     {
@@ -167,7 +162,7 @@ void console_clear()
         u16* ptr = (u16*)pos;
         while(row_char_count--)
         {
-            *ptr = *++ptr;  // 待研究
+            // *ptr = *++ptr;  // 待研究
             *ptr = *(ptr+1);
             ptr++;
         }
@@ -186,6 +181,8 @@ void console_write(char* buf , u32 count)
         switch (ch)
         {
             case ASCII_NULL:
+                set_cursor();
+
                 break;             
             case ASCII_ENQ  :   
                 
@@ -195,14 +192,14 @@ void console_write(char* buf , u32 count)
                 break;  // \a 
             case ASCII_BS   :   
                 command_bs();
-                command_cr();
+                // command_cr();
                 break;  //  \b 
             case ASCII_HT   :   
                 
                 break;  //  \t 
             case ASCII_LF   :   
-                command_lf();
-                command_cf();
+                command_lf();  
+                command_cr();
                 break;  //  \n 
             case ASCII_VT   :   
                 
@@ -224,35 +221,43 @@ void console_write(char* buf , u32 count)
 
 
         }
+    }
     command_lf();
     command_cr();
-    set_cursor();
-    }
-
-    
+    set_cursor();    
 }
   
 void console_init()
 {
     // console_clear();
-    pos = 2*2+MEM_BASE;
+    pos = 160*2+MEM_BASE;
     set_cursor();
-    screen = 5*2 + MEM_BASE;
+    get_cursor();
+    screen =  80*2 + MEM_BASE;
     set_screen();
     get_screen();
     get_cursor();
- 
-    screen =  4*2 + MEM_BASE;
+    screen = 120*2 + MEM_BASE;
     set_screen();
-    x = 10;
-    y = 4;
-    pos = 5*80 + MEM_BASE;
-    set_cursor();
-    get_cursor();
+ 
     put_chars("congratulation!!!");
     console_clear();
     pos = 8*80 + MEM_BASE;
     put_chars("congratulation!!!");
+    char *teststr = "xyz\b\ndefghijkmhoertihhkjjjjjj";
+    console_write(teststr, 20);
+    console_write(teststr, 20);
+    get_cursor();
+    pos -= 160;
+    // get_cursor();
+    set_cursor();
+    teststr[0] = 0x7f;
+    teststr[1] = 0x7f;
+    teststr[2] = 0x7f;
+    console_write(teststr, 20);
+    *(u16*)pos = erase;
+    set_cursor();
+
 
 
  
