@@ -29,7 +29,8 @@
 
 static u32 screen = MEM_BASE;  //当前显示器的起始位置  （内存地址）
 static u32 pos = MEM_BASE; //当前光标位置  （内存地址）
-static int  x, y;   //光标在当前屏幕上的显示位置。与pos
+static int  x=0;
+static int  y=0;   //光标在当前屏幕上的显示位置。与pos
 
 static u8 attr = 7;  // 字符样式
 static u16 erase = 0x0720 ;  //空格
@@ -40,16 +41,34 @@ void put_chars(char* str)
     {
         *(char*)pos++ =  *str++;
         pos++;
+        x++;
     }
+    if (x >= WIDTH)
+    {
+        y+= x/WIDTH;
+        x %= WIDTH ;
+    }        
     set_cursor();
 }
 
-static void set_screen()
+static void set_screen()  //设置从第几个字符开始作为屏幕的第一个字符
 {
     outb (CRT_ADDR_REG , CRT_START_ADD_H);
     outb (CRT_DATA_REG ,((screen - MEM_BASE ) >> 9 ) & 0xff ) ;
     outb (CRT_ADDR_REG , CRT_START_ADD_L);
     outb (CRT_DATA_REG ,((screen - MEM_BASE ) >> 1 ) & 0xff ) ;
+    if(pos < screen) 
+    {
+        pos = screen;
+        x = y = 0;
+    }
+    else
+    {
+        u32 delta = (pos - screen)>>1;
+        x = delta % WIDTH;
+        y = delta / WIDTH;
+    }    
+    set_cursor();
 }
 static void get_screen()
 {
@@ -65,15 +84,18 @@ static void get_screen()
 static void set_cursor()
 {
     //  
-    outb (CRT_ADDR_REG , CRT_CURSOR_H);
-    outb (CRT_DATA_REG ,((pos - MEM_BASE) >> 9 ) & 0xff ) ;     //搞清楚：cursor 到底是相对 MEM_BASE的，还是相对于SCREEN的。
-    outb (CRT_ADDR_REG , CRT_CURSOR_L);
-    outb (CRT_DATA_REG ,((pos - MEM_BASE) >> 1 ) & 0xff ) ;
     
-     u32 delta;
-    pos > screen ? (delta = (pos - screen) >>1) : (delta = 0);
-    x = delta % WIDTH;
-    y = delta / WIDTH;
+    u32 delta = (x + y*WIDTH );
+    pos = screen + (delta<<1);
+    delta += ((screen - MEM_BASE)>>1);
+    outb (CRT_ADDR_REG , CRT_CURSOR_H);
+    outb (CRT_DATA_REG ,((delta) >>8 ) & 0xff ) ;     //搞清楚：cursor 到底是相对 MEM_BASE的，还是相对于SCREEN的。
+    outb (CRT_ADDR_REG , CRT_CURSOR_L);
+    outb (CRT_DATA_REG ,delta & 0xff ) ;
+    
+    // pos > screen ? (delta = (pos - screen) >>1) : (delta = 0);
+    // x = delta % WIDTH;
+    // y = delta / WIDTH;
 }
 static void get_cursor()
 {
@@ -84,7 +106,7 @@ static void get_cursor()
     pos<<=1;
     pos += MEM_BASE;
 
-    get_screen();
+    // get_screen();
     u32 delta;
     pos > screen ? (delta = (pos - screen) >>1) : (delta = 0);
     x = delta % WIDTH;
@@ -123,7 +145,7 @@ void console_clear()
             screen = MEM_BASE;
             set_screen();
         }
-        if  (y == HEIGHT )
+        while (y >= HEIGHT )
         {
             screen += ROW_SIZE;
             y--;
@@ -135,30 +157,28 @@ void console_clear()
     }
     static void command_cr()  // 回车（不换行）
     {
-        pos -= (x*2);
         x = 0;
         set_cursor();
     }
     static void command_bs()  //退格
     {
         //问题出在这里！！！！！
-        // set_cursor();
-        // if(x)
-        //     {
-        //         pos -= 2;
-        //         *(u16 *)pos = erase;     
-        //         x--;
-        //     }
-        //     else
-        //     {
-        //         y -= 1;
-        //         x = WIDTH;
-        //     }
+        if(x)
+            {
+                x--;
+            }
+            else
+            {
+                y -= 1;
+                x = WIDTH-1;
+            }
+        set_cursor();
+        *(u16*)pos = erase;
     }
     static void command_del()  // DEL 键
     {
         char ch;
-        int row_char_count = WIDTH - x ;
+        int row_char_count = WIDTH -1 - x  ;
         u16* ptr = (u16*)pos;
         while(row_char_count--)
         {
@@ -230,7 +250,7 @@ void console_write(char* buf , u32 count)
 void console_init()
 {
     // console_clear();
-    pos = 160*2+MEM_BASE;
+    x = 2;
     set_cursor();
     get_cursor();
     screen =  80*2 + MEM_BASE;
@@ -240,9 +260,10 @@ void console_init()
     screen = 120*2 + MEM_BASE;
     set_screen();
  
-    put_chars("congratulation!!!");
-    console_clear();
-    pos = 8*80 + MEM_BASE;
+    put_chars("congratulationaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!!!");
+    // console_clear();
+    // pos = 8*80 + MEM_BASE;
+    y = 4;
     put_chars("congratulation!!!");
     char *teststr = "xyz\b\ndefghijkmhoertihhkjjjjjj";
     console_write(teststr, 20);
