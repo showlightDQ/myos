@@ -41,13 +41,7 @@ void put_chars(char* str)
     {
         *(char*)pos++ =  *str++;
         pos++;
-        x++;
-    }
-    if (x >= WIDTH)
-    {
-        y+= x/WIDTH;
-        x %= WIDTH ;
-    }        
+    }      
     set_cursor();
 }
 
@@ -59,8 +53,8 @@ static void set_screen()  //设置从第几个字符开始作为屏幕的第一�
     outb (CRT_DATA_REG ,((screen - MEM_BASE ) >> 1 ) & 0xff ) ;
     if(pos < screen) 
     {
-        pos = screen;
         x = y = 0;
+        pos = screen;
     }
     else
     {
@@ -68,11 +62,11 @@ static void set_screen()  //设置从第几个字符开始作为屏幕的第一�
         x = delta % WIDTH;
         y = delta / WIDTH;
     }    
-    set_cursor();
+    // set_xy_cursor(); //先搞清楚 ,设置了screen后 ，cursor 是否会有变化。
 }
 static void get_screen()
 {
-    outb (CRT_ADDR_REG , CRT_START_ADD_H);
+    outb (CRT_ADDR_REG , CRT_START_ADD_H);//screen 是相对 MEM_BASE的，以2字节为单位，表明从MEM_BASE开始的第几个字符作为screen的开始。
     screen = inb(CRT_DATA_REG) << 8;
     outb (CRT_ADDR_REG , CRT_START_ADD_L);
     screen |= inb(CRT_DATA_REG) ;
@@ -83,19 +77,25 @@ static void get_screen()
 
 static void set_cursor()
 {
-    //  
-    
-    u32 delta = (x + y*WIDTH );
-    pos = screen + (delta<<1);
-    delta += ((screen - MEM_BASE)>>1);
-    outb (CRT_ADDR_REG , CRT_CURSOR_H);
-    outb (CRT_DATA_REG ,((delta) >>8 ) & 0xff ) ;     //搞清楚：cursor 到底是相对 MEM_BASE的，还是相对于SCREEN的。
+    u32 delta;
+    outb (CRT_ADDR_REG , CRT_CURSOR_H);   //cursor 是相对 MEM_BASE的，以2字节为单位，表明cursor是从MEM_BASE开始的第几个字符。
+    outb (CRT_DATA_REG ,((pos - MEM_BASE) >>9 ) & 0xff ) ;    
     outb (CRT_ADDR_REG , CRT_CURSOR_L);
-    outb (CRT_DATA_REG ,delta & 0xff ) ;
+    outb (CRT_DATA_REG ,((pos - MEM_BASE) >>1 ) & 0xff ) ;
     
-    // pos > screen ? (delta = (pos - screen) >>1) : (delta = 0);
-    // x = delta % WIDTH;
-    // y = delta / WIDTH;
+    pos > screen ? (delta = (pos - screen) >>1) : (delta = 0);
+    x = delta % WIDTH;
+    y = delta / WIDTH;
+}
+static set_xy_cursor()
+{
+    u32 delta = y*WIDTH + x ;
+    pos = screen + (delta<<1) ;
+    u32 pos_base_on_xy = (delta + (screen - MEM_BASE)>>1);
+    outb (CRT_ADDR_REG , CRT_CURSOR_H);   //cursor 是相对 MEM_BASE的，以2字节为单位，表明cursor是从MEM_BASE开始的第几个字符。
+    outb (CRT_DATA_REG ,(pos_base_on_xy >> 8) & 0xff ) ;    
+    outb (CRT_ADDR_REG , CRT_CURSOR_L);
+    outb (CRT_DATA_REG ,(pos_base_on_xy) & 0xff ) ;    
 }
 static void get_cursor()
 {
@@ -136,7 +136,7 @@ void console_clear()
     }
     static void command_lf()  // 换行
     {
-        if(pos> MEM_BASE + MEM_SIZE - ROW_SIZE)  //如果光标在显存范围的最后一行，把当前屏复制到MEM_BASE起始的地方，清空后面的内容。
+        if(pos > (MEM_BASE + MEM_SIZE - ROW_SIZE))  //如果光标在显存范围的最后一行，把当前屏复制到MEM_BASE起始的地方，清空后面的内容。
         {
             
             memcpy((void*)MEM_BASE, (void*)(MEM_BASE + MEM_SIZE - SCR_SIZE),SCR_SIZE);
@@ -147,33 +147,25 @@ void console_clear()
         }
         while (y >= HEIGHT )
         {
-            screen += ROW_SIZE;
-            y--;
-            set_screen();
+            scroll_up();
         }
         pos += ROW_SIZE;
-        y++;
         set_cursor();
     }
     static void command_cr()  // 回车（不换行）
     {
         x = 0;
-        set_cursor();
+        set_xy_cursor();
     }
     static void command_bs()  //退格
     {
         //问题出在这里！！！！！
-        if(x)
-            {
-                x--;
-            }
-            else
-            {
-                y -= 1;
-                x = WIDTH-1;
-            }
+        if (pos > screen)
+        {
+            pos -= 2;
+        }
         set_cursor();
-        *(u16*)pos = erase;
+        command_del();
     }
     static void command_del()  // DEL 键
     {
