@@ -1,6 +1,10 @@
 #ifndef ONIX_STRING_H
     #define ONIX_STRING_H
     #include<onix/types.h>
+    #define CHAR_0 0x30
+    #define CHAR_a 0x40
+    #define CHAR_DASH 0x2D
+
 
     char* strcpy(char* destnation, const char* src);  
     char* strcat(char* dest , const char* src);
@@ -15,6 +19,7 @@
     void *memchr(const void *str, int ch, size_t count);
     char *strsep(const char *str);
     char *strrsep(const char *str);
+    char* int_to_string(int in_number , char* str);
 
 
 #endif

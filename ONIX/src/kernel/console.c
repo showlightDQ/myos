@@ -13,7 +13,7 @@
 #define MEM_END (MEM_BASE + MEM_SIZE)
 #define WIDTH 80
 #define HEIGHT 25
-#define ROW_SIZE (WIDTH *2)
+#define ROW_SIZE (WIDTH*2)
 #define SCR_SIZE (ROW_SIZE * HEIGHT)
 
 #define ASCII_NULL 0x00
@@ -25,7 +25,7 @@
 #define ASCII_VT   0x0B  //  \v 
 #define ASCII_FF   0x0C  //  \f 
 #define ASCII_CR   0x0D  //  \r 
-#define ASCII_DEL  0x7F
+#define ASCII_DEL  0x7F  // \177
 
 static u32 screen = MEM_BASE;  //当前显示器的起始位置  （内存地址）
 static u32 pos = MEM_BASE; //当前光标位置  （内存地址）
@@ -35,7 +35,7 @@ static int  y=0;   //光标在当前屏幕上的显示位置。与pos
 static u8 attr = 7;  // 字符样式
 static u16 erase = 0x0720 ;  //空格
 
-void put_chars(char* str)
+void console_put_chars(char* str)
 {
     while(*str != EOS)  
     {
@@ -87,15 +87,16 @@ static void set_cursor()
     x = delta % WIDTH;
     y = delta / WIDTH;
 }
-static set_xy_cursor()
+static void set_xy_cursor()
 {
     u32 delta = y*WIDTH + x ;
-    pos = screen + (delta<<1) ;
-    u32 pos_base_on_xy = (delta + (screen - MEM_BASE)>>1);
+      u32 test = (screen - MEM_BASE)>>1;
+    u32 pos_base_on_xy = delta + ((screen - MEM_BASE)>>1);  //基于MEMORY_BASE 的字符偏移量
     outb (CRT_ADDR_REG , CRT_CURSOR_H);   //cursor 是相对 MEM_BASE的，以2字节为单位，表明cursor是从MEM_BASE开始的第几个字符。
     outb (CRT_DATA_REG ,(pos_base_on_xy >> 8) & 0xff ) ;    
     outb (CRT_ADDR_REG , CRT_CURSOR_L);
     outb (CRT_DATA_REG ,(pos_base_on_xy) & 0xff ) ;    
+    pos = screen + (delta<<1) ;
 }
 static void get_cursor()
 {
@@ -120,10 +121,10 @@ void console_clear()
     x = y = 0;
     set_screen();
     set_cursor();
-    u16 *ptr = (u16*)MEM_BASE;
-    while (ptr <  (u16*)MEM_END)
+    u32 *ptr = (u32*)MEM_BASE;
+    while (ptr <  (u32*)MEM_END)
     {
-        *ptr++ = erase;
+        *ptr++ = 0;
     }
 }
 
@@ -140,7 +141,8 @@ void console_clear()
         {
             
             memcpy((void*)MEM_BASE, (void*)(MEM_BASE + MEM_SIZE - SCR_SIZE),SCR_SIZE);
-            memset((void*)(MEM_BASE + SCR_SIZE), (char)0, MEM_BASE+MEM_SIZE-SCR_SIZE);
+            int test = MEM_SIZE-SCR_SIZE;
+            memset((void*)(MEM_BASE + SCR_SIZE), (char)0, MEM_SIZE-SCR_SIZE);
             pos = pos - screen + MEM_BASE;
             screen = MEM_BASE;
             set_screen();
@@ -172,7 +174,7 @@ void console_clear()
         char ch;
         int row_char_count = WIDTH -1 - x  ;
         u16* ptr = (u16*)pos;
-        while(row_char_count--)
+        while(row_char_count-- && (*ptr&0xff) != 0)
         {
             // *ptr = *++ptr;  // 待研究
             *ptr = *(ptr+1);
@@ -183,7 +185,7 @@ void console_clear()
 
 
 
-void console_write(char* buf , u32 count)
+void console_write(char *buf , u32 count)
 {
     char ch;
     char* ptr = (char*)pos;
@@ -229,35 +231,44 @@ void console_write(char* buf , u32 count)
 
             default:
                 *(char*)pos++ = ch ;
-                pos++;
-
-
+                *(char*)pos++ = attr ;
+                
+                set_cursor();    
         }
     }
     command_lf();
     command_cr();
-    set_cursor();    
 }
   
 void console_init()
 {
-    // console_clear();
+    x = sizeof(123333345678);
+    x = sizeof(123);
+    char intptr[10];
+    char *chstr = int_to_string(-1200034,intptr);
+    
+        // console_clear();
     x = 2;
     set_cursor();
+    set_xy_cursor();
     get_cursor();
     screen =  80*2 + MEM_BASE;
     set_screen();
+    get_cursor();
+    y = 4;
+    set_xy_cursor();
     get_screen();
     get_cursor();
     screen = 120*2 + MEM_BASE;
     set_screen();
  
-    put_chars("congratulationaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!!!");
+    console_put_chars("congratulationaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabcdeggadfa3glkajsdfnbkl;jsdfioeriof1459018704570asdfjjk;l23er890-aaaaaaaaaaaaaa!!!");
     // console_clear();
     // pos = 8*80 + MEM_BASE;
     y = 4;
-    put_chars("congratulation!!!");
-    char *teststr = "xyz\b\ndefghijkmhoertihhkjjjjjj";
+    set_xy_cursor();
+    console_put_chars("congratulation!!!");
+    char *teststr = "-9012346789z\177\b\ndefghijkmhoertihhkjjjjjj";
     console_write(teststr, 20);
     console_write(teststr, 20);
     get_cursor();
@@ -267,9 +278,18 @@ void console_init()
     teststr[0] = 0x7f;
     teststr[1] = 0x7f;
     teststr[2] = 0x7f;
-    console_write(teststr, 20);
+    screen = MEM_BASE;
+    set_screen();
+    for (size_t i = 0; i < 200; i++)
+    {
+        /* code */
+        
+        console_write(int_to_string(i,intptr),5);
+    }
+    
     *(u16*)pos = erase;
     set_cursor();
+
 
 
 

@@ -184,3 +184,57 @@ char *strrsep(const char *str)
         }
     }
 }
+
+char *int_to_string(int in_number, char *str)
+{
+    char sub_str[20] ; 
+    char *ptr = str;
+
+    int remainder = 1;
+    int higher_number = 1 ;
+    int base_number = 1;
+    int flag_next = 1;
+    int single_wei;
+    int wei=0;
+    int current_wei;
+    int index=0;
+    char ch;
+    int  temp = in_number < 0 ? -in_number : in_number;
+   
+    if(in_number)
+    {    }
+    else
+    {
+        ptr[0] = CHAR_0;
+        ptr[1] = 0;
+        return ptr;
+    }
+
+
+    while(temp)
+    {
+        remainder = temp % 10;
+        higher_number = temp / 10;
+        sub_str[index] = (char)(CHAR_0 + remainder);
+        index++;
+        temp = higher_number;
+    }
+
+
+    if (in_number < 0)
+    {
+        sub_str[index] = CHAR_DASH;
+        index++;
+    }
+
+    temp = 0;
+    while(index--)
+    {
+        ptr[temp] = sub_str[index];
+        temp++;
+    }
+    ptr[temp] = 0;
+
+    return ptr;
+}
+
