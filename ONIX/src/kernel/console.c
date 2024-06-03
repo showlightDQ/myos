@@ -90,7 +90,6 @@ static void set_cursor()
 static void set_xy_cursor()
 {
     u32 delta = y*WIDTH + x ;
-      u32 test = (screen - MEM_BASE)>>1;
     u32 pos_base_on_xy = delta + ((screen - MEM_BASE)>>1);  //基于MEMORY_BASE 的字符偏移量
     outb (CRT_ADDR_REG , CRT_CURSOR_H);   //cursor 是相对 MEM_BASE的，以2字节为单位，表明cursor是从MEM_BASE开始的第几个字符。
     outb (CRT_DATA_REG ,(pos_base_on_xy >> 8) & 0xff ) ;    
@@ -140,14 +139,14 @@ void console_clear()
         if(pos > (MEM_BASE + MEM_SIZE - ROW_SIZE))  //如果光标在显存范围的最后一行，把当前屏复制到MEM_BASE起始的地方，清空后面的内容。
         {
             
-            memcpy((void*)MEM_BASE, (void*)(MEM_BASE + MEM_SIZE - SCR_SIZE),SCR_SIZE);
-            int test = MEM_SIZE-SCR_SIZE;
+            // memcpy((void*)MEM_BASE, (void*)(MEM_BASE + MEM_SIZE - SCR_SIZE),SCR_SIZE);
+            memcpy((void*)MEM_BASE, (void*)(screen) , SCR_SIZE);
             memset((void*)(MEM_BASE + SCR_SIZE), (char)0, MEM_SIZE-SCR_SIZE);
             pos = pos - screen + MEM_BASE;
             screen = MEM_BASE;
             set_screen();
         }
-        while (y >= HEIGHT )
+        while (y >= HEIGHT-1 )
         {
             scroll_up();
         }
@@ -174,7 +173,7 @@ void console_clear()
         char ch;
         int row_char_count = WIDTH -1 - x  ;
         u16* ptr = (u16*)pos;
-        while(row_char_count-- && (*ptr&0xff) != 0)
+        while(row_char_count-- && (*(ptr+1)&0xff) != 0)
         {
             // *ptr = *++ptr;  // 待研究
             *ptr = *(ptr+1);
@@ -286,6 +285,12 @@ void console_init()
         
         console_write(int_to_string(i,intptr),5);
     }
+    while (true)
+    {
+        console_write(int_to_string((int)pos,intptr),10);
+        /* code */
+    }
+    
     
     *(u16*)pos = erase;
     set_cursor();
