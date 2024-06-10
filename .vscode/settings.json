@@ -5,6 +5,7 @@
         "console.h": "c",
         "cstring": "c",
         "string.h": "c",
-        "variant": "c"
+        "variant": "c",
+        "assert.h": "c"
     }
 }

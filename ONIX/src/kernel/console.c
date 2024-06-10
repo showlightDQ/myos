@@ -285,12 +285,7 @@ void console_init()
         
         console_write(int_to_string(i,intptr),5);
     }
-    while (true)
-    {
-        console_write(int_to_string((int)pos,intptr),10);
-        /* code */
-    }
-    
+  
     
     *(u16*)pos = erase;
     set_cursor();
