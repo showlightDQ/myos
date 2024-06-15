@@ -30,11 +30,12 @@ void test_args(int cnt, ...)
 
 void kernel_init()
 {
+     magic_breakpoint();
      console_init();
      int cnt = 30;
      while (cnt--)
      {
-          printk("hello onix %#010x\n",cnt);
+           printk("hello onix %#010x\n",cnt);
      }
     
      return;

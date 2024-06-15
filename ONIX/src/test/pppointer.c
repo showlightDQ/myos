@@ -1,9 +1,14 @@
-int test(char **p)
+int test(int x)
 {
-    int b=100;
-    int *a = &b;
-    int c;
-    
+     char *a = "012345";
+    *a =  'A';
+     int b=100;
+     x = 1000;
+    // int *a = &b;
+    // int c;
+    // c = *a++;
+    // c = *++a;
+
     // int b ;
     // a = &b;
     // int  *c;
@@ -22,5 +27,5 @@ void test2()
 {
     char ary[5] ;
     void *p = &ary;
-    int a = test(p);
+    
 }

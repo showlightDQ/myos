@@ -1,8 +1,10 @@
 .PHONY : clean  bochs test bochsg
 BUILD :=../build
 SRC   :=.
-KERNEL :=./kernel
+KERNEL :=../build/kernel
 ENTRYPOINT := 0x10000
+LIB    :=../build/lib
+
 
 CFLAGS:= -m32 
 CFLAGS+= -fno-builtin
@@ -79,27 +81,27 @@ master.img : boot.bin \
 kernel.bin:  kernel.o  \
 		main.o \
 		io.o \
-		string.o \
 		console.o \
 		printk.o \
+		string.o \
 		vsprintf.o \
 		
 
 		    # 此处 文件先后 可能影响 dbg 的效果。
 	ld -m elf_i386 -static \
-	$(BUILD)/$(word 1,$^) \
-	$(BUILD)/$(word 2,$^)  \
-	$(BUILD)/$(word 3,$^)  \
-	$(BUILD)/$(word 4,$^)  \
-	$(BUILD)/$(word 5,$^)  \
-	$(BUILD)/$(word 6,$^)  \
-	$(BUILD)/$(word 7,$^)  \
-	-o $(BUILD)/$@ -Ttext $(ENTRYPOINT)
+	$(KERNEL)/$(word 1,$^) \
+	$(KERNEL)/$(word 2,$^)  \
+	$(KERNEL)/$(word 3,$^)  \
+	$(KERNEL)/$(word 4,$^)  \
+	$(KERNEL)/$(word 5,$^)  \
+	$(LIB)/$(word 6,$^)  \
+	$(LIB)/$(word 7,$^)  \
+	-o $(KERNEL)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
-	objcopy -O binary $(BUILD)/$< $(BUILD)/$@  # 展开.bss等空间，去掉头信息等内容
+	objcopy -O binary $(KERNEL)/$< $(BUILD)/$@  # 展开.bss等空间，去掉头信息等内容
 
 system.map : kernel.bin
-	nm $(BUILD)/$< | sort > $(BUILD)/$@ 
+	nm $(KERNEL)/$< | sort > $(BUILD)/$@ 
 
 
 clean:
@@ -116,7 +118,7 @@ bochs : master.img
 	bochs -f ../bochs/bochsConfiguration -q  
 
 bochsg : master.img
-	bochs-gdb -f ../bochs/bochsrc_gdb -q  
+	bochs -f ../bochs/bochsrc_gdb -q  
 
 qemu : master.img 
 	qemu-system-i386 \

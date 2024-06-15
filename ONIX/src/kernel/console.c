@@ -83,7 +83,7 @@ static void set_cursor()
     outb (CRT_ADDR_REG , CRT_CURSOR_L);
     outb (CRT_DATA_REG ,((pos - MEM_BASE) >>1 ) & 0xff ) ;
     
-    pos > screen ? (delta = (pos - screen) >>1) : (delta = 0);
+    (pos > screen )? (delta = (pos - screen) >>1) : (delta = 0);
     x = delta % WIDTH;
     y = delta / WIDTH;
 }
@@ -241,54 +241,17 @@ void console_write(char *buf , u32 count)
   
 void console_init()
 {
-    x = sizeof(123333345678);
-    x = sizeof(123);
-    char intptr[10];
-    char *chstr = int_to_string(-1200034,intptr);
-    
-        // console_clear();
-    x = 2;
+    //搞不懂，为什么这些全局变量没有得到初始值
+     screen = MEM_BASE;  //当前显示器的起始位置  （内存地址）
+     pos = MEM_BASE; //当前光标位置  （内存地址）
+     x=0;
+     y=0;   //光标在当前屏幕上的显示位置。与pos
+    attr = 7;  // 字符样式
+    erase = 0x0720 ;  //空格
+
+    console_clear();
     set_cursor();
-    set_xy_cursor();
-    get_cursor();
-    screen =  80*2 + MEM_BASE;
-    set_screen();
-    get_cursor();
-    y = 4;
-    set_xy_cursor();
-    get_screen();
-    get_cursor();
-    screen = 120*2 + MEM_BASE;
-    set_screen();
- 
-    console_put_chars("congratulationaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabcdeggadfa3glkajsdfnbkl;jsdfioeriof1459018704570asdfjjk;l23er890-aaaaaaaaaaaaaa!!!");
-    // console_clear();
-    // pos = 8*80 + MEM_BASE;
-    y = 4;
-    set_xy_cursor();
-    console_put_chars("congratulation!!!");
-    char *teststr = "-9012346789z\177\b\ndefghijkmhoertihhkjjjjjj";
-    console_write(teststr, 20);
-    console_write(teststr, 20);
-    get_cursor();
-    pos -= 160;
-    // get_cursor();
-    set_cursor();
-    teststr[0] = 0x7f;
-    teststr[1] = 0x7f;
-    teststr[2] = 0x7f;
-    screen = MEM_BASE;
-    set_screen();
-    for (size_t i = 0; i < 200; i++)
-    {
-        /* code */
-        
-        console_write(int_to_string(i,intptr),5);
-    }
-  
-    
-    *(u16*)pos = erase;
-    set_cursor();
+
 
 
 

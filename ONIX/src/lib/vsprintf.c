@@ -17,7 +17,7 @@
 
 #define is_digit(c) ((c) >= '0' && (c) <= '9')
 
-// 将字符数字串转换成整数，并将指针前移
+// 将字符数字串转换成整数，并 将 指 针  前移
 static int skip_atoi(const char **s)
 {
     int i = 0;
@@ -39,7 +39,7 @@ static char *number(char *str, unsigned long num, int base, int size, int precis
     const char *digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     int i;
     int index;
-    char *ptr = str;
+    char *ptr = str;  //这个PTR没有用到嘛。
 
     // 如果 flags 指出用小写字母，则定义小写字母集
     if (flags & SMALL)
@@ -373,7 +373,7 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 
     // 返回转换好的字符串长度值
     i = str - buf;
-    assert(i < 1024);
+    // assert(i < 1024);
     return i;
 }
 

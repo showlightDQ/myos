@@ -2,6 +2,12 @@
 
 section .text 
 
+global magic_breakpoint
+magic_breakpoint:
+    xchg bx,bx
+    xchg ebx,ebx
+    ret
+
 global inb 
 inb:
     push ebp

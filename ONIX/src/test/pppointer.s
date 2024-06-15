@@ -5,30 +5,27 @@
 # GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
 # options passed: -m32 -mpreferred-stack-boundary=2 -mtune=generic -march=x86-64 -fno-pic -fno-asynchronous-unwind-tables -fno-ident
 	.text
+	.section	.rodata
+.LC0:
+	.string	"012345"
+	.text
 	.globl	test
 	.type	test, @function
 test:
 	pushl	%ebp	#
 	movl	%esp, %ebp	#,
-	subl	$16, %esp	#,
-	movl	8(%ebp), %eax	# p, tmp83
-	movl	%eax, -16(%ebp)	# tmp83, p
-# pppointer.c:2: {
-	movl	%gs:20, %eax	# MEM[(<address-space-2> unsigned int *)20B], tmp85
-	movl	%eax, -4(%ebp)	# tmp85, D.2691
-	xorl	%eax, %eax	# tmp85
-# pppointer.c:3:     int b=100;
-	movl	$100, -12(%ebp)	#, b
-# pppointer.c:4:     int *a = &b;
-	leal	-12(%ebp), %eax	#, tmp84
-	movl	%eax, -8(%ebp)	# tmp84, a
-# pppointer.c:19: }
+	subl	$8, %esp	#,
+# pppointer.c:3:      char *a = "012345";
+	movl	$.LC0, -8(%ebp)	#, a
+# pppointer.c:4:     *a =  'A';
+	movl	-8(%ebp), %eax	# a, tmp83
+	movb	$65, (%eax)	#, *a_1
+# pppointer.c:5:      int b=100;
+	movl	$100, -4(%ebp)	#, b
+# pppointer.c:6:      x = 1000;
+	movl	$1000, 8(%ebp)	#, x
+# pppointer.c:24: }
 	nop	
-	movl	-4(%ebp), %edx	# D.2691, tmp86
-	subl	%gs:20, %edx	# MEM[(<address-space-2> unsigned int *)20B], tmp86
-	je	.L2	#,
-	call	__stack_chk_fail	#
-.L2:
 	leave	
 	ret	
 	.size	test, .-test
@@ -37,26 +34,21 @@ test:
 test2:
 	pushl	%ebp	#
 	movl	%esp, %ebp	#,
-	subl	$20, %esp	#,
-# pppointer.c:22: {
-	movl	%gs:20, %eax	# MEM[(<address-space-2> unsigned int *)20B], tmp84
-	movl	%eax, -4(%ebp)	# tmp84, D.2693
-	xorl	%eax, %eax	# tmp84
-# pppointer.c:24:     void *p = &ary;
+	subl	$16, %esp	#,
+# pppointer.c:27: {
+	movl	%gs:20, %eax	# MEM[(<address-space-2> unsigned int *)20B], tmp83
+	movl	%eax, -4(%ebp)	# tmp83, D.2690
+	xorl	%eax, %eax	# tmp83
+# pppointer.c:29:     void *p = &ary;
 	leal	-9(%ebp), %eax	#, tmp82
-	movl	%eax, -20(%ebp)	# tmp82, p
-# pppointer.c:25:     int a = test(p);
-	pushl	-20(%ebp)	# p
-	call	test	#
-	addl	$4, %esp	#,
-	movl	%eax, -16(%ebp)	# tmp83, a
-# pppointer.c:26: }
+	movl	%eax, -16(%ebp)	# tmp82, p
+# pppointer.c:31: }
 	nop	
-	movl	-4(%ebp), %eax	# D.2693, tmp85
-	subl	%gs:20, %eax	# MEM[(<address-space-2> unsigned int *)20B], tmp85
-	je	.L4	#,
+	movl	-4(%ebp), %eax	# D.2690, tmp84
+	subl	%gs:20, %eax	# MEM[(<address-space-2> unsigned int *)20B], tmp84
+	je	.L3	#,
 	call	__stack_chk_fail	#
-.L4:
+.L3:
 	leave	
 	ret	
 	.size	test2, .-test2

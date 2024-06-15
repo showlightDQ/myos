@@ -2,6 +2,9 @@
     #define ONIX_IO_H
     #include<onix/types.h>
 
+    
+    extern void magic_breakpoint();  //  bochs下的魔术断点
+
     extern u8 inb(u16 port);
     extern u16 inw(u16 port);
 

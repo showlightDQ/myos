@@ -6,6 +6,8 @@
         "cstring": "c",
         "string.h": "c",
         "variant": "c",
-        "assert.h": "c"
-    }
+        "assert.h": "c",
+        "io.h": "c"
+    },
+    "C_Cpp.dimInactiveRegions": false
 }
