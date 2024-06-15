@@ -235,8 +235,8 @@ void console_write(char *buf , u32 count)
                 set_cursor();    
         }
     }
-    command_lf();
-    command_cr();
+    // command_lf();
+    // command_cr();
 }
   
 void console_init()
