@@ -4,7 +4,9 @@
 #include "onix/string.h"
 #include "onix/console.h"
 #include <onix/stdarg.h>
-#include <onix/printk.h>
+#include <onix/printk.h> 
+#include <onix/assert.h> 
+#include <onix/debug.h> 
 
 
 
@@ -25,6 +27,8 @@ void test_args(int cnt, ...)
      }
      va_end(args);
 
+
+
 }
 
 
@@ -32,12 +36,18 @@ void kernel_init()
 {
      magic_breakpoint();
      console_init();
+     asm volatile("xchgw %bx, %bx") ;
      int cnt = 30;
      while (cnt--)
      {
            printk("hello onix %#010x\n",cnt);
      }
-    
+     BMB;
+     DEBUGK("debug here! \n %d \n %d",cnt,cnt+1);
+
+
+
+
      return;
 
      

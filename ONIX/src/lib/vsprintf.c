@@ -373,7 +373,7 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 
     // 返回转换好的字符串长度值
     i = str - buf;
-    // assert(i < 1024);
+    assert(i < 1024);
     return i;
 }
 

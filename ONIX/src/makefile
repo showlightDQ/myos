@@ -85,6 +85,9 @@ kernel.bin:  kernel.o  \
 		printk.o \
 		string.o \
 		vsprintf.o \
+		assert.o \
+		debug.o \
+
 		
 
 		    # 此处 文件先后 可能影响 dbg 的效果。
@@ -96,6 +99,8 @@ kernel.bin:  kernel.o  \
 	$(KERNEL)/$(word 5,$^)  \
 	$(LIB)/$(word 6,$^)  \
 	$(LIB)/$(word 7,$^)  \
+	$(LIB)/$(word 8,$^)  \
+	$(KERNEL)/$(word 9,$^)  \
 	-o $(KERNEL)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
 	objcopy -O binary $(KERNEL)/$< $(BUILD)/$@  # 展开.bss等空间，去掉头信息等内容
