@@ -42,10 +42,10 @@ void kernel_init()
      {
            printk("hello onix %#010x\n",cnt);
      }
-     BMB;
      DEBUGK("debug here! \n %d \n %d",cnt,cnt+1);
 
 
+     BMB;
 
 
      return;
