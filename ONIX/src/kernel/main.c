@@ -7,6 +7,7 @@
 #include <onix/printk.h> 
 #include <onix/assert.h> 
 #include <onix/debug.h> 
+#include <onix/global.h> 
 
 
 
@@ -42,10 +43,13 @@ void kernel_init()
      {
            printk("hello onix %#010x\n",cnt);
      }
-     DEBUGK("debug here! \n %d \n %d",cnt,cnt+1);
+     DEBUGK("debug here! \n ");
+     gdt_init();
 
 
      BMB;
+
+
 
 
      return;

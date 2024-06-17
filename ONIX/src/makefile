@@ -87,6 +87,7 @@ kernel.bin:  kernel.o  \
 		vsprintf.o \
 		assert.o \
 		debug.o \
+		global.o \
 
 		
 
@@ -101,6 +102,7 @@ kernel.bin:  kernel.o  \
 	$(LIB)/$(word 7,$^)  \
 	$(LIB)/$(word 8,$^)  \
 	$(KERNEL)/$(word 9,$^)  \
+	$(KERNEL)/$(word 10,$^)  \
 	-o $(KERNEL)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
 	objcopy -O binary $(KERNEL)/$< $(BUILD)/$@  # 展开.bss等空间，去掉头信息等内容
