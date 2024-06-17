@@ -44,6 +44,7 @@ void kernel_init()
            printk("hello onix %#010x\n",cnt);
      }
      DEBUGK("debug here! \n ");
+     DEBUGK("debug here! \n ");
      gdt_init();
 
      BMB;
