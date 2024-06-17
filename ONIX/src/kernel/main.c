@@ -45,8 +45,6 @@ void kernel_init()
      }
      DEBUGK("debug here! \n ");
      gdt_init();
-     gdt_init();
-     
 
      BMB;
 
