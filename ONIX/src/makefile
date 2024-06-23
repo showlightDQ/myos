@@ -1,9 +1,11 @@
 .PHONY : clean  bochs test bochsg
 BUILD :=../build
+TEST :=./test
 SRC   :=.
 KERNEL :=../build/kernel
 ENTRYPOINT := 0x10000
 LIB    :=../build/lib
+INCLUDE:= -I$(SRC)/include
 
 
 CFLAGS:= -m32 
@@ -14,6 +16,7 @@ CFLAGS+= -fno-pie
 CFLAGS+= -nostdlib
 CFLAGS+= -fno-stack-protector
 CFLAGS:=$(strip $(CFLAGS))
+DEBUG:= -g
 
 	# -fno-pie  不生成位置无关的可执行文件
 		# --verbose  显示编译命令细节
@@ -41,8 +44,6 @@ CFLAGS:=$(strip $(CFLAGS))
 		# 链接 ld -m elf_i386 -static XXX.o -o XXX.out -e main
 		#  --verbose   ：gcc XX.c -o XX.out --verbose 显示完整编译过程	
 
-DEBUG:= -g
-INCLUDE:= -I$(SRC)/include
 
 
 qemug2 : $(BUILD)/master.img
@@ -62,6 +63,9 @@ master.img : boot.bin \
 	dd if=$(BUILD)/boot/boot.bin   of=$(BUILD)/$@ bs=512 count=1   conv=notrunc seek=0
 	dd if=$(BUILD)/boot/loader.bin of=$(BUILD)/$@ bs=512 count=3   conv=notrunc seek=1
 	dd if=$(BUILD)/system.bin of=$(BUILD)/$@ bs=512 count=200 conv=notrunc seek=4
+
+%.s : $(SRC)/kernel/%.c 
+	gcc -m32 -fverbose-asm -nostartfiles -mpreferred-stack-boundary=2 -Qn -fno-pic -fno-asynchronous-unwind-tables $(CFLAGS) $(INCLUDE) -s $< -o ${TEST}/$@
   
 %.o : $(SRC)/kernel/%.c 
 	$(shell mkdir -p ${BUILD}/kernel/)
@@ -88,9 +92,8 @@ kernel.bin:  kernel.o  \
 		assert.o \
 		debug.o \
 		global.o \
-
-		
-
+		task.o \
+		schedule.o \
 		    # 此处 文件先后 可能影响 dbg 的效果。
 	ld -m elf_i386 -static \
 	$(KERNEL)/$(word 1,$^) \
@@ -103,9 +106,12 @@ kernel.bin:  kernel.o  \
 	$(LIB)/$(word 8,$^)  \
 	$(KERNEL)/$(word 9,$^)  \
 	$(KERNEL)/$(word 10,$^)  \
+	$(KERNEL)/$(word 11,$^)  \
+	$(KERNEL)/$(word 12,$^)  \
 	-o $(KERNEL)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
-	objcopy -O binary $(KERNEL)/$< $(BUILD)/$@  # 展开.bss等空间，去掉头信息等内容
+	objcopy -O binary $(KERNEL)/$< $(BUILD)/$@  
+	# 展开.bss等空间，去掉头信息等内容
 
 system.map : kernel.bin
 	nm $(KERNEL)/$< | sort > $(BUILD)/$@ 

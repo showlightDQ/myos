@@ -13,12 +13,22 @@ CFLAGS+= -fno-pic   # 去掉位置无关PIC 代码 ，查找全局偏移表的�
 CFLAGS+= -fno-asynchronous-unwind-tables 
 
 CFLAGS:=$(strip $(CFLAGS)) 
+SRC   :=../
+LIB    :=../build/lib
+INCLUDE:= -I$(SRC)/include
+
+
+.PHONY : clean  bochs test bochsg
+# BUILD :=../build
+# KERNEL :=../build/kernel
+# ENTRYPOINT := 0x10000
+
 
 .PHONY : %.s 
 %.s : %.c
-	gcc $(CFLAGS) -S $< -o $@
+	gcc $(CFLAGS) $(INCLUDE) -S $< -o $@
 
 %.out : %.s
-	gcc $(CFLAGS)  $< -o $@
+	gcc $(CFLAGS) $(INCLUDE)  $< -o $@
 
 

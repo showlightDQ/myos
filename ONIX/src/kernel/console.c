@@ -47,10 +47,7 @@ void console_put_chars(char* str)
 
 static void set_screen()  //设置从第几个字符开始作为屏幕的第一个字符
 {
-    outb (CRT_ADDR_REG , CRT_START_ADD_H);
-    outb (CRT_DATA_REG ,((screen - MEM_BASE ) >> 9 ) & 0xff ) ;
-    outb (CRT_ADDR_REG , CRT_START_ADD_L);
-    outb (CRT_DATA_REG ,((screen - MEM_BASE ) >> 1 ) & 0xff ) ;
+    
     if(pos < screen) 
     {
         x = y = 0;
@@ -62,6 +59,10 @@ static void set_screen()  //设置从第几个字符开始作为屏幕的第一�
         x = delta % WIDTH;
         y = delta / WIDTH;
     }    
+    outb (CRT_ADDR_REG , CRT_START_ADD_H);
+    outb (CRT_DATA_REG ,((screen - MEM_BASE ) >> 9 ) & 0xff ) ;
+    outb (CRT_ADDR_REG , CRT_START_ADD_L);
+    outb (CRT_DATA_REG ,((screen - MEM_BASE ) >> 1 ) & 0xff ) ;
     // set_xy_cursor(); //先搞清楚 ,设置了screen后 ，cursor 是否会有变化。
 }
 static void get_screen()
@@ -86,6 +87,8 @@ static void set_cursor()
     (pos > screen )? (delta = (pos - screen) >>1) : (delta = 0);
     x = delta % WIDTH;
     y = delta / WIDTH;
+    if(y>HEIGHT-1)  
+        scroll_up();
 }
 static void set_xy_cursor()
 {
@@ -131,12 +134,7 @@ void console_clear()
  // 字符命令
     static void scroll_up()
     {
-        screen += ROW_SIZE;
-        set_screen();
-    }
-    static void command_lf()  // 换行
-    {
-        if(pos > (MEM_BASE + MEM_SIZE - ROW_SIZE))  //如果光标在显存范围的最后一行，把当前屏复制到MEM_BASE起始的地方，清空后面的内容。
+         if(pos > (MEM_BASE + MEM_SIZE - ROW_SIZE))  //如果光标在显存范围的最后一行，把当前屏复制到MEM_BASE起始的地方，清空后面的内容。
         {
             
             // memcpy((void*)MEM_BASE, (void*)(MEM_BASE + MEM_SIZE - SCR_SIZE),SCR_SIZE);
@@ -144,8 +142,16 @@ void console_clear()
             memset((void*)(MEM_BASE + SCR_SIZE), (char)0, MEM_SIZE-SCR_SIZE);
             pos = pos - screen + MEM_BASE;
             screen = MEM_BASE;
+            set_cursor();            
+        }
+        else
+        {
+            screen += ROW_SIZE;
             set_screen();
         }
+    }
+    static void command_lf()  // 换行
+    {
         while (y >= HEIGHT-1 )
         {
             scroll_up();
