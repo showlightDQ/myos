@@ -15,6 +15,8 @@
 
 // #define CRT_CURSOR_H 0xe
 // #define CRT_CURSOR_L 0xf
+int test11 = 100;
+
 void test_args(int cnt, ...)
 {
      va_list args;
@@ -30,6 +32,7 @@ void test_args(int cnt, ...)
 
 void kernel_init()
 {
+     int test111 = test11;
      magic_breakpoint();
      console_init();
      asm volatile("xchgw %bx, %bx");

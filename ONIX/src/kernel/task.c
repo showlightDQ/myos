@@ -284,9 +284,8 @@ static void task_create(task_t *task, target_t target)
 }
 void task_init()
 {
-    task_t *a1 = a;
-    task_t *b1 = b;
-    int test2 = test1;
+    a = (task_t*) 0x1000;
+    b = (task_t*) 0x2000;
     
     task_create(a, thread_a);
     task_create(b, thread_b);
