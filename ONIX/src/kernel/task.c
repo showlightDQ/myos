@@ -212,7 +212,8 @@ extern void task_switch(task_t *next);
 
 task_t *a = (task_t*) 0x1000;
 task_t *b = (task_t*) 0x2000;
-int test1 = 123;
+static int test1 = 0x11112222;
+long int test2 = 0x22222222;
 
 
 task_t *running_task()
@@ -286,6 +287,7 @@ void task_init()
 {
     a = (task_t*) 0x1000;
     b = (task_t*) 0x2000;
+    int test11 = test1;
     
     task_create(a, thread_a);
     task_create(b, thread_b);
