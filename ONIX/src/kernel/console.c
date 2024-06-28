@@ -247,14 +247,7 @@ void console_write(char *buf , u32 count)
   
 void console_init()
 {
-    //搞不懂，为什么这些全局变量没有得到初始值
-     screen = MEM_BASE;  //当前显示器的起始位置  （内存地址）
-     pos = MEM_BASE; //当前光标位置  （内存地址）
-     x=0;
-     y=0;   //光标在当前屏幕上的显示位置。与pos
-    attr = 7;  // 字符样式
-    erase = 0x0720 ;  //空格
-
+   
     console_clear();
     set_cursor();
 

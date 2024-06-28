@@ -381,7 +381,7 @@ protect_mode_entrance:
         call setup_page
 
         mov ecx,4
-        mov bl,20
+        mov bl,200
         mov edi,0x10000
         call read_disk
         ;  xchg bx,bx

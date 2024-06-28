@@ -62,7 +62,7 @@ master.img : boot.bin \
 	yes | bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $(BUILD)/$@
 	dd if=$(BUILD)/boot/boot.bin   of=$(BUILD)/$@ bs=512 count=1   conv=notrunc seek=0
 	dd if=$(BUILD)/boot/loader.bin of=$(BUILD)/$@ bs=512 count=3   conv=notrunc seek=1
-	dd if=$(BUILD)/system.bin of=$(BUILD)/$@ bs=512 count=200 conv=notrunc seek=4
+	dd if=$(BUILD)/system.bin      of=$(BUILD)/$@ bs=512 count=200 conv=notrunc seek=4
 
 %.s : $(SRC)/kernel/%.c 
 	gcc -m32 -fverbose-asm -nostartfiles -mpreferred-stack-boundary=2 -Qn -fno-pic -fno-asynchronous-unwind-tables $(CFLAGS) $(INCLUDE) -s $< -o ${TEST}/$@
@@ -95,7 +95,7 @@ kernel.bin:  kernel.o  \
 		task.o \
 		schedule.o \
 		    # 此处 文件先后 可能影响 dbg 的效果。
-	ld -m elf_i386 -static \
+	ld -m elf_i386 -Bstatic \
 	$(KERNEL)/$(word 1,$^) \
 	$(KERNEL)/$(word 2,$^)  \
 	$(KERNEL)/$(word 3,$^)  \
@@ -111,7 +111,7 @@ kernel.bin:  kernel.o  \
 	-o $(KERNEL)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
 	objcopy -O binary $(KERNEL)/$< $(BUILD)/$@  
-	# 展开.bss等空间，去掉头信息等内容
+	# 展开.bss等空间,去掉头信息等内容
 
 system.map : kernel.bin
 	nm $(KERNEL)/$< | sort > $(BUILD)/$@ 
