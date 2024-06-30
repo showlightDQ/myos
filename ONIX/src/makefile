@@ -71,13 +71,13 @@ master.img : boot.bin \
 	$(shell mkdir -p ${BUILD}/kernel/)
 	gcc $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o ${BUILD}/kernel/$@
 
-%.o : $(SRC)/lib/%.c 
-	$(shell mkdir -p ${BUILD}/lib/)
-	gcc $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o ${BUILD}/lib/$@
-
 %.o : $(SRC)/kernel/%.asm
 	$(shell mkdir -p ${BUILD}/kernel/) 
 	nasm -f elf32 $(DEBUG) $< -o ${BUILD}/kernel/$@    
+
+%.o : $(SRC)/lib/%.c 
+	$(shell mkdir -p ${BUILD}/lib/)
+	gcc $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o ${BUILD}/lib/$@
 
 %.bin : ${SRC}/boot/%.asm
 	$(shell mkdir -p ${BUILD}/boot/)
@@ -94,6 +94,8 @@ kernel.bin:  kernel.o  \
 		global.o \
 		task.o \
 		schedule.o \
+		interrupt.o \
+		handler.o
 		    # 此处 文件先后 可能影响 dbg 的效果。
 	ld -m elf_i386 -Bstatic \
 	$(KERNEL)/$(word 1,$^) \
@@ -108,6 +110,8 @@ kernel.bin:  kernel.o  \
 	$(KERNEL)/$(word 10,$^)  \
 	$(KERNEL)/$(word 11,$^)  \
 	$(KERNEL)/$(word 12,$^)  \
+	$(KERNEL)/$(word 13,$^)  \
+	$(KERNEL)/$(word 14,$^)  \
 	-o $(KERNEL)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
 	objcopy -O binary $(KERNEL)/$< $(BUILD)/$@  

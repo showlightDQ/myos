@@ -17,7 +17,7 @@
 #define bool _Bool
 #define true 1
 #define false 0
-#endif
+#endif  
 
 // 标记弱符号
 #define weak __attribute__((__weak__))

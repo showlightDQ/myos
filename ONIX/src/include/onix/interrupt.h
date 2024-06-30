@@ -23,6 +23,8 @@
 #define IRQ_MASTER_NR 0x20 // 主片起始向量号
 #define IRQ_SLAVE_NR 0x28  // 从片起始向量号
 
+void interrupt_init();
+
 typedef struct gate_t
 {
     u16 offset0;    // 段内偏移 0 ~ 15 位

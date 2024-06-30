@@ -9,6 +9,7 @@
 #include <onix/debug.h>
 #include <onix/global.h>
 #include <onix/task.h>
+#include <onix/interrupt.h>
 
 // #define CRT_ADDR_REG 0x3d4
 // #define CRT_DATA_REG 0x3d5
@@ -44,7 +45,8 @@ void kernel_init()
      gdt_init();
 
      BMB;
-     task_init();
+     // task_init();
+     interrupt_init();
 
      return;
 }

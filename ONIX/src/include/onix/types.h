@@ -4,7 +4,7 @@
 #define EOF -1
 #define EOS '\0'
 #define NULL ((void*)0)
-#define boll _Bool 
+#define bool _Bool 
 #define true 1
 #define false 0
 #define _packed __attribute__((packed))
