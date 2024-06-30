@@ -212,9 +212,6 @@ extern void task_switch(task_t *next);
 
 task_t *a = (task_t*) 0x1000;
 task_t *b = (task_t*) 0x2000;
-static int test1 = 0x11112222;
-long long int test2 = 0x9977777778888888;
-
 
 task_t *running_task()
 {
@@ -269,23 +266,23 @@ u32 thread_b()
     }
 }
 
-static void task_create(task_t *task, target_t target)
+static void task_create(task_t *task, target_t routine)
 {
     u32 stack = (u32)task + PAGE_SIZE;
 
     stack -= sizeof(task_frame_t);
     task_frame_t *frame = (task_frame_t *)stack;
-    frame->edi = 0x33333333;
-    frame->esi = 0x22222222;
-    frame->ebx = 0x11111111;
-    frame->ebp = 0x44444444;
-    frame->eip = (void*)target;
+    frame->edi = 0x1;
+    frame->esi = 2;
+    frame->ebx = 3;
+    frame->ebp = 4;
+    frame->eip = (void*)routine;
 
     task->stack = (u32 *)stack;
 }
 void task_init()
 {
-      
+    
     task_create(a, thread_a);
     task_create(b, thread_b);
     schedule();
