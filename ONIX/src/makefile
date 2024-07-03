@@ -7,6 +7,12 @@ ENTRYPOINT := 0x10000
 LIB    :=../build/lib
 INCLUDE:= -I$(SRC)/include
 
+ttt := ./kernel 
+ALLFILE := $(shell ls $(ttt))
+
+showshell: ;
+	 @echo $(ALLFILE)
+
 
 CFLAGS:= -m32 
 CFLAGS+= -fno-builtin
