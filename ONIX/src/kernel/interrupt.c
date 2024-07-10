@@ -20,35 +20,35 @@
 gate_t idt[IDT_SIZE];
 pointer_t idt_ptr;
 
-// handler_t handler_table[IDT_SIZE];
-// extern handler_t handler_entry_table[ENTRY_SIZE];
-// extern void syscall_handler();
-// extern void page_fault();
+handler_t handler_table[IDT_SIZE];
+extern handler_t handler_entry_table[ENTRY_SIZE];
+extern void syscall_handler();
+extern void page_fault();
 
-// static char *messages[] = {
-//     "#DE Divide Error\0",
-//     "#DB RESERVED\0",
-//     "--  NMI Interrupt\0",
-//     "#BP Breakpoint\0",
-//     "#OF Overflow\0",
-//     "#BR BOUND Range Exceeded\0",
-//     "#UD Invalid Opcode (Undefined Opcode)\0",
-//     "#NM Device Not Available (No Math Coprocessor)\0",
-//     "#DF Double Fault\0",
-//     "    Coprocessor Segment Overrun (reserved)\0",
-//     "#TS Invalid TSS\0",
-//     "#NP Segment Not Present\0",
-//     "#SS Stack-Segment Fault\0",
-//     "#GP General Protection\0",
-//     "#PF Page Fault\0",
-//     "--  (Intel reserved. Do not use.)\0",
-//     "#MF x87 FPU Floating-Point Error (Math Fault)\0",
-//     "#AC Alignment Check\0",
-//     "#MC Machine Check\0",
-//     "#XF SIMD Floating-Point Exception\0",
-//     "#VE Virtualization Exception\0",
-//     "#CP Control Protection Exception\0",
-// };
+static char *messages[] = {
+    "#DE Divide Error\0",
+    "#DB RESERVED\0",
+    "--  NMI Interrupt\0",
+    "#BP Breakpoint\0",
+    "#OF Overflow\0",
+    "#BR BOUND Range Exceeded\0",
+    "#UD Invalid Opcode (Undefined Opcode)\0",
+    "#NM Device Not Available (No Math Coprocessor)\0",
+    "#DF Double Fault\0",
+    "    Coprocessor Segment Overrun (reserved)\0",
+    "#TS Invalid TSS\0",
+    "#NP Segment Not Present\0",
+    "#SS Stack-Segment Fault\0",
+    "#GP General Protection\0",
+    "#PF Page Fault\0",
+    "--  (Intel reserved. Do not use.)\0",
+    "#MF x87 FPU Floating-Point Error (Math Fault)\0",
+    "#AC Alignment Check\0",
+    "#MC Machine Check\0",
+    "#XF SIMD Floating-Point Exception\0",
+    "#VE Virtualization Exception\0",
+    "#CP Control Protection Exception\0",
+};
 
 // // 通知中断控制器，中断处理结束
 // void send_eoi(int vector)
@@ -130,34 +130,37 @@ pointer_t idt_ptr;
 //     send_eoi(vector);
 //     DEBUGK("[%x] default interrupt called...\n", vector);
 // }
-
+              
 // void exception_handler(
 //     int vector,
 //     u32 edi, u32 esi, u32 ebp, u32 esp,
 //     u32 ebx, u32 edx, u32 ecx, u32 eax,
 //     u32 gs, u32 fs, u32 es, u32 ds,
 //     u32 vector0, u32 error, u32 eip, u32 cs, u32 eflags)
-// {
-//     char *message = NULL;
-//     if (vector < 22)
-//     {
-//         message = messages[vector];
-//     }
-//     else
-//     {
-//         message = messages[15];
-//     }
+                            void exception_handler(int vector)
 
-//     printk("\nEXCEPTION : %s \n", messages[vector]);
-//     printk("   VECTOR : 0x%02X\n", vector);
-//     printk("    ERROR : 0x%08X\n", error);
-//     printk("   EFLAGS : 0x%08X\n", eflags);
-//     printk("       CS : 0x%02X\n", cs);
-//     printk("      EIP : 0x%08X\n", eip);
-//     printk("      ESP : 0x%08X\n", esp);
-//     // 阻塞
-//     // hang();
-// }
+
+{
+    char *message = NULL;
+    if (vector < 22)
+    {
+        message = messages[vector];
+    }
+    else
+    {
+        message = messages[15];
+    }
+
+    printk("\nEXCEPTION : %s \n", messages[vector]);
+    printk("   VECTOR : 0x%02X\n", vector);
+    // printk("    ERROR : 0x%08X\n", error);
+    // printk("   EFLAGS : 0x%08X\n", eflags);
+    // printk("       CS : 0x%02X\n", cs);
+    // printk("      EIP : 0x%08X\n", eip);
+    // printk("      ESP : 0x%08X\n", esp);
+    // 阻塞
+    // hang();
+}
 
 // // 初始化中断控制器
 // void pic_init()
@@ -177,19 +180,16 @@ pointer_t idt_ptr;
 // }
 
 // 初始化中断描述符，和中断处理函数数组
-        extern int interrupt_handler();
-        extern int interrupt_handler2();
+       
+       
 void idt_init()
 {
     for (size_t i = 0; i < IDT_SIZE; i++)
     {
         gate_t *gate = &idt[i];
-        // handler_t handler = handler_entry_table[i];
-
-        gate->offset0 = (u32)interrupt_handler & 0xffff;
-        gate->offset1 = ((u32)interrupt_handler >> 16) & 0xffff;
-        // gate->offset0 = (u32)handler & 0xffff;
-        // gate->offset1 = ((u32)handler >> 16) & 0xffff;
+        handler_t handler = handler_entry_table[i];       
+        gate->offset0 = (u32)handler & 0xffff;
+        gate->offset1 = ((u32)handler >> 16) & 0xffff;
         gate->selector = 1 << 3; // 代码段
         gate->reserved = 0;      // 保留不用
         gate->type = 0b1110;     // 中断门
@@ -197,29 +197,13 @@ void idt_init()
         gate->DPL = 0;           // 内核态
         gate->present = 1;       // 有效
     }
-    for (size_t i = 0x80; i < 0x81; i++)
+    
+    for (size_t i = 0; i < 0x20; i++)
     {
-        gate_t *gate = &idt[i];
-        // handler_t handler = handler_entry_table[i];
-
-        gate->offset0 = (u32)interrupt_handler2 & 0xffff;
-        gate->offset1 = ((u32)interrupt_handler2 >> 16) & 0xffff;
-        // gate->offset0 = (u32)handler & 0xffff;
-        // gate->offset1 = ((u32)handler >> 16) & 0xffff;
-        gate->selector = 1 << 3; // 代码段
-        gate->reserved = 0;      // 保留不用
-        gate->type = 0b1110;     // 中断门
-        gate->segment = 0;       // 系统段
-        gate->DPL = 0;           // 内核态
-        gate->present = 1;       // 有效
+        handler_table[i] = exception_handler;
     }
 
-    // for (size_t i = 0; i < 0x20; i++)
-    // {
-    //     handler_table[i] = exception_handler;
-    // }
-
-    // handler_table[0xe] = page_fault;
+    // handler_table[0xe] = page_fault;  
 
     // for (size_t i = 0x20; i < ENTRY_SIZE; i++)
     // {

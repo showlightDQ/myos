@@ -37,10 +37,8 @@ void kernel_init()
      console_init();
      asm volatile("xchgw %bx, %bx");
      int cnt = 30;
-     while (cnt--)
-     {
+    
           printk("hello onix %#010x\n", cnt);
-     }
      DEBUGK("debug here! \n ");
      gdt_init();
 
