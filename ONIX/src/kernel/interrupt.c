@@ -177,7 +177,8 @@ pointer_t idt_ptr;
 // }
 
 // 初始化中断描述符，和中断处理函数数组
-        extern interrupt_handler();
+        extern int interrupt_handler();
+        extern int interrupt_handler2();
 void idt_init()
 {
     for (size_t i = 0; i < IDT_SIZE; i++)
@@ -187,6 +188,22 @@ void idt_init()
 
         gate->offset0 = (u32)interrupt_handler & 0xffff;
         gate->offset1 = ((u32)interrupt_handler >> 16) & 0xffff;
+        // gate->offset0 = (u32)handler & 0xffff;
+        // gate->offset1 = ((u32)handler >> 16) & 0xffff;
+        gate->selector = 1 << 3; // 代码段
+        gate->reserved = 0;      // 保留不用
+        gate->type = 0b1110;     // 中断门
+        gate->segment = 0;       // 系统段
+        gate->DPL = 0;           // 内核态
+        gate->present = 1;       // 有效
+    }
+    for (size_t i = 0x80; i < 0x81; i++)
+    {
+        gate_t *gate = &idt[i];
+        // handler_t handler = handler_entry_table[i];
+
+        gate->offset0 = (u32)interrupt_handler2 & 0xffff;
+        gate->offset1 = ((u32)interrupt_handler2 >> 16) & 0xffff;
         // gate->offset0 = (u32)handler & 0xffff;
         // gate->offset1 = ((u32)handler >> 16) & 0xffff;
         gate->selector = 1 << 3; // 代码段

@@ -1,4 +1,4 @@
-.PHONY : clean  bochs test bochsg
+.PHONY : clean  bochs test bochsg  test
 BUILD :=../build
 TEST :=./test
 SRC   :=.
@@ -7,11 +7,12 @@ ENTRYPOINT := 0x10000
 LIB    :=../build/lib
 INCLUDE:= -I$(SRC)/include
 
-ttt := ./kernel 
-ALLFILE := $(shell ls $(ttt))
+ #设置make默认查找路径
+vpath = %.asm .kernel:.boot
+VPATH = ./src:../include
+override INCLUDE += $(patsubst %,-I%,$(subst :, ,$(VPATH)))
 
-showshell: ;
-	 @echo $(ALLFILE)
+
 
 
 CFLAGS:= -m32 
@@ -159,9 +160,23 @@ qemug : master.img
 vmdk : master.img
 	qemu-img convert -pO  vmdk $(BUILD)/$< $(BUILD)/master.$@
 	 
+
+
+#.............................................测试用。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。
+#查找并返回ls文件在哪个PATH文件夹下，并返回完整路径
+pathsearch = $(firstword $(wildcard $(addsuffix /$(1),$(subst :, ,$(PATH))))) 
+LS := $(call pathsearch,ls)
+# 查找PATH目录下的所有文件
+pathsearch =  $(wildcard $(addsuffix /$(1),$(subst :, ,$(PATH))))
+LS1 := $(call pathsearch,*)
 test :
 	@echo CFLAGS = $(CFLAGS)
-
+	@echo INCLUDE=$(INCLUDE)
+	@echo $(notdir $(wildcard *))
+	@echo PATH=$(PATH)
+	@echo LS1=$(LS1)
+	@echo LS=$(LS)
+	 
 
 
 

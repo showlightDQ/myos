@@ -31,4 +31,13 @@ INCLUDE:= -I$(SRC)/include
 %.out : %.s
 	gcc $(CFLAGS) $(INCLUDE)  $< -o $@
 
+VPATH = ./test_make   :       ../
+SPACE :=abc  #abc 
+
+test : nasm_help.txt
+	echo $(VPATH)
+	echo $(SPACE)$(SPACE)
+	@echo $(wildcard *.c)
+
+
 

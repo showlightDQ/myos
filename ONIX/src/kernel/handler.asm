@@ -11,6 +11,7 @@ section .text
             extern printk
 
             global interrupt_handler
+            global interrupt_handler2
             interrupt_handler:
                 xchg bx,bx
                 push message_interrupt
@@ -18,9 +19,24 @@ section .text
                 add esp ,4
                 xchg bx,bx
                 iret
+
+            interrupt_handler2:
+                xchg bx,bx
+                push message_interrupt2
+                call printk
+                add esp ,4
+                xchg bx,bx
+                iret
+
+
             section .data
+
+
+
             message_interrupt:
                 db "interrupt handler!!!",10,0
+            message_interrupt2:
+                db "showlight!!!",10,0
 
 
 
