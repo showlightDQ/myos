@@ -10,6 +10,7 @@
 #include <onix/global.h>
 #include <onix/task.h>
 #include <onix/interrupt.h>
+#include <onix/stdlib.h>
 
 // #define CRT_ADDR_REG 0x3d4
 // #define CRT_DATA_REG 0x3d5
@@ -41,10 +42,17 @@ void kernel_init()
           printk("hello onix %#010x\n", cnt);
      DEBUGK("debug here! \n ");
      gdt_init();
-
-     BMB;
-     // task_init();
      interrupt_init();
+     //task_init();
+     asm volatile("sti\n");
+     
+     u32 counter = 0;
+     while (true)
+     {
+          DEBUGK("loopint in kernel init %d...\n",counter++);
+          delay(10000000);
+
+     }
 
      return;
 }

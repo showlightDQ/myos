@@ -8,7 +8,7 @@ _start:
     call kernel_init
     
     xchg bx,bx
-    int 0x00
+    int 0x80
     mov ebx ,0
     xchg bx,bx
     div ebx

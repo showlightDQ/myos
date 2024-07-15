@@ -102,7 +102,8 @@ kernel.bin:  kernel.o  \
 		task.o \
 		schedule.o \
 		interrupt.o \
-		handler.o
+		handler.o \
+		stdlib.o
 		    # 此处 文件先后 可能影响 dbg 的效果。
 	ld -m elf_i386 -Bstatic \
 	$(KERNEL)/$(word 1,$^) \
@@ -119,6 +120,7 @@ kernel.bin:  kernel.o  \
 	$(KERNEL)/$(word 12,$^)  \
 	$(KERNEL)/$(word 13,$^)  \
 	$(KERNEL)/$(word 14,$^)  \
+	$(LIB)/$(word 15,$^)  \
 	-o $(KERNEL)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
 	objcopy -O binary $(KERNEL)/$< $(BUILD)/$@  
