@@ -24,6 +24,7 @@ handler_t handler_table[IDT_SIZE];
 extern handler_t handler_entry_table[ENTRY_SIZE];
 extern void syscall_handler();
 extern void page_fault();
+extern void schedule();
 
 static char *messages[] = {
     "#DE Divide Error\0",
@@ -125,21 +126,20 @@ void send_eoi(int vector)
 //         asm volatile("cli\n");
 // }
 
-u32 count = 0; 
+
 void default_handler(int vector)
 {
     send_eoi(vector);
-    DEBUGK("[%x] default interrupt called...%04d\n", vector,count++);
-    delay(1000);
+    // DEBUGK("[%x] default interrupt called...%04d\n", vector,count++);
+    schedule();
 }
               
-// void exception_handler(
-//     int vector,
-//     u32 edi, u32 esi, u32 ebp, u32 esp,
-//     u32 ebx, u32 edx, u32 ecx, u32 eax,
-//     u32 gs, u32 fs, u32 es, u32 ds,
-//     u32 vector0, u32 error, u32 eip, u32 cs, u32 eflags)
-                            void exception_handler(int vector)
+void exception_handler(
+    int vector,
+    u32 edi, u32 esi, u32 ebp, u32 esp,
+    u32 ebx, u32 edx, u32 ecx, u32 eax,
+    u32 gs, u32 fs, u32 es, u32 ds,
+    u32 vector0, u32 error, u32 eip, u32 cs, u32 eflags)             
 
 
 {
@@ -155,13 +155,13 @@ void default_handler(int vector)
 
     printk("\nEXCEPTION : %s \n", messages[vector]);
     printk("   VECTOR : 0x%02X\n", vector);
-    // printk("    ERROR : 0x%08X\n", error);
-    // printk("   EFLAGS : 0x%08X\n", eflags);
-    // printk("       CS : 0x%02X\n", cs);
-    // printk("      EIP : 0x%08X\n", eip);
-    // printk("      ESP : 0x%08X\n", esp);
+    printk("    ERROR : 0x%08X\n", error);
+    printk("   EFLAGS : 0x%08X\n", eflags);
+    printk("       CS : 0x%02X\n", cs);
+    printk("      EIP : 0x%08X\n", eip);
+    printk("      ESP : 0x%08X\n", esp);
     // 阻塞
-    // hang();
+    hang();
 }
 
 // // 初始化中断控制器

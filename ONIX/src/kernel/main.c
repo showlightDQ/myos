@@ -34,25 +34,15 @@ void test_args(int cnt, ...)
 void kernel_init()
 {
      
-     magic_breakpoint();
-     console_init();
      asm volatile("xchgw %bx, %bx");
-     int cnt = 30;
-    
-          printk("hello onix %#010x\n", cnt);
-     DEBUGK("debug here! \n ");
+     
+     console_init();
+     
      gdt_init();
      interrupt_init();
-     //task_init();
-     asm volatile("sti\n");
-     
-     u32 counter = 0;
-     while (true)
-     {
-          DEBUGK("loopint in kernel init %d...\n",counter++);
-          delay(10000000);
-
-     }
+     task_init();
+     // asm volatile("sti\n");
+  
 
      return;
 }

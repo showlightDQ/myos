@@ -8,6 +8,8 @@
 #define true 1
 #define false 0
 #define _packed __attribute__((packed))
+#define _ofp __attribute__((optimize("omit-frame-pointer")))
+
 
 typedef unsigned int size_t;
   
