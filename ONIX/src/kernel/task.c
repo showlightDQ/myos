@@ -7,8 +7,8 @@
 #include <onix/string.h>
 // #include <onix/bitmap.h>
 // #include <onix/syscall.h>
-// #include <onix/list.h>
-// #include <onix/global.h>
+#include <onix/list.h>
+#include <onix/global.h>
 // #include <onix/arena.h>
 // #include <onix/fs.h>
 // #include <onix/errno.h>
@@ -21,7 +21,7 @@
 // extern u32 volatile jiffies;
 // extern u32 jiffy;
 // extern bitmap_t kernel_map;
-// extern tss_t tss;
+extern tss_t tss;
 // extern file_t file_table[];
 
 
@@ -30,7 +30,7 @@ extern void task_switch(task_t *next);
 
 // task_t *task_table[TASK_NR]; // 任务表
 // static list_t block_list;    // 任务默认阻塞链表
-// static list_t sleep_list;    // 任务睡眠链表
+static list_t sleep_list;    // 任务睡眠链表
 
 // static task_t *idle_task;
 
@@ -138,7 +138,7 @@ extern void task_switch(task_t *next);
 //     return task->sid == task->pid;
 // }
 
-// // 任务阻塞
+// 任务阻塞  test
 // int task_block(task_t *task, list_t *blist, task_state_t state, int timeout_ms)
 // {
 //     assert(!get_interrupt_state());
@@ -192,7 +192,7 @@ extern void task_switch(task_t *next);
 //     task_block(task, &sleep_list, TASK_SLEEPING, ms);
 // }
 
-// // 激活任务
+// // // 激活任务
 // void task_activate(task_t *task)
 // {
 //     assert(task->magic == ONIX_MAGIC);
@@ -254,7 +254,7 @@ u32 _ofp thread_a()
     asm volatile("sti \n");
     while (true)
     {
-        printk("A"); 
+        printk("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"); 
     }
 }
 u32 _ofp thread_b()
@@ -262,7 +262,7 @@ u32 _ofp thread_b()
     asm volatile("sti \n");
     while (true)
     {
-        printk("B"); 
+        printk("_______________________________________________________"); 
     }
 }
 
@@ -278,7 +278,7 @@ static void task_create(task_t *task, target_t routine)
     frame->ebp = 4;
     frame->eip = (void*)routine;
 
-    task->stack = (u32 *)stack;
+    task->stack = (u32 *)stack;   //栈的第一个数据存放 esp 的值，
 }
 void task_init()
 {

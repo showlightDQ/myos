@@ -103,7 +103,8 @@ kernel.bin:  kernel.o  \
 		schedule.o \
 		interrupt.o \
 		handler.o \
-		stdlib.o
+		stdlib.o \
+		clock.o
 		    # 此处 文件先后 可能影响 dbg 的效果。
 	ld -m elf_i386 -Bstatic \
 	$(KERNEL)/$(word 1,$^) \
@@ -121,6 +122,7 @@ kernel.bin:  kernel.o  \
 	$(KERNEL)/$(word 13,$^)  \
 	$(KERNEL)/$(word 14,$^)  \
 	$(LIB)/$(word 15,$^)  \
+	$(KERNEL)/$(word 16,$^)  \
 	-o $(KERNEL)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
 	objcopy -O binary $(KERNEL)/$< $(BUILD)/$@  
@@ -150,14 +152,21 @@ qemu : master.img
 	qemu-system-i386 \
 	-m 32M \
 	-boot c \
-	-hda $(BUILD)/$<  
+	-drive file=$(BUILD)/$<,if=ide,index=0,media=disk,format=raw \
+	-audiodev pa,id=hda \
+	-machine pcspk-audiodev=hda
+
 	
 qemug : master.img 
 	qemu-system-i386 \
+	-s -S \
 	-m 32M \
 	-boot c \
-	-hda $(BUILD)/$< \
-	-s -S     # 暂停，等待1234端口信号
+	-drive file=$(BUILD)/$<,if=ide,index=0,media=disk,format=raw \
+	-audiodev pa,id=hda \
+	-machine pcspk-audiodev=hda \
+
+	
 
 vmdk : master.img
 	qemu-img convert -pO  vmdk $(BUILD)/$< $(BUILD)/master.$@

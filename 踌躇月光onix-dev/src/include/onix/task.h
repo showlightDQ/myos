@@ -67,7 +67,9 @@ typedef struct task_frame_t
     u32 esi;
     u32 ebx;
     u32 ebp;
-    void (*eip)(void);
+    // void (*eip)(void);
+    // void *eip(void);  //应该不需要括号吧？
+    void *eip;  //甚至不需要函数定义吧？
 } task_frame_t;
 
 // 中断帧

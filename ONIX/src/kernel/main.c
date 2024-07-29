@@ -12,36 +12,27 @@
 #include <onix/interrupt.h>
 #include <onix/stdlib.h>
 
+extern void clock_init();
 // #define CRT_ADDR_REG 0x3d4
 // #define CRT_DATA_REG 0x3d5
 
 // #define CRT_CURSOR_H 0xe
 // #define CRT_CURSOR_L 0xf
 
-void test_args(int cnt, ...)
-{
-     va_list args;
-     va_start(args, cnt);
-
-     int arg;
-     while (cnt--)
-     {
-          arg = va_arg(args, int);
-     }
-     va_end(args);
-}
 
 void kernel_init()
 {
      
      asm volatile("xchgw %bx, %bx");
-     
+          
      console_init();
      
      gdt_init();
      interrupt_init();
-     task_init();
-     // asm volatile("sti\n");
+     // task_init();
+     clock_init();
+     asm volatile("sti\n");
+     hang();
   
 
      return;

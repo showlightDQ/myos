@@ -4,7 +4,7 @@
 #include <onix/types.h>
 
 #define IDT_SIZE 256
-
+//定义外中断号
 #define IRQ_CLOCK 0      // 时钟
 #define IRQ_KEYBOARD 1   // 键盘
 #define IRQ_CASCADE 2    // 8259 从片控制器

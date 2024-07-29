@@ -20,7 +20,7 @@
 gate_t idt[IDT_SIZE];
 pointer_t idt_ptr;
 
-handler_t handler_table[IDT_SIZE];
+handler_t handler_table[IDT_SIZE];   //handler_table只不过是个void指针
 extern handler_t handler_entry_table[ENTRY_SIZE];
 extern void syscall_handler();
 extern void page_fault();
@@ -65,75 +65,76 @@ void send_eoi(int vector)
     }
 }
 
-// void set_interrupt_handler(u32 irq, handler_t handler)
-// {
-//     assert(irq >= 0 && irq < 16);
-//     handler_table[IRQ_MASTER_NR + irq] = handler;
-// }
+void set_interrupt_handler(u32 irq, handler_t handler)
+{
+    assert(irq >= 0 && irq < 16);
+    handler_table[IRQ_MASTER_NR + irq] = handler;
+}
 
-// void set_interrupt_mask(u32 irq, bool enable)
-// {
-//     assert(irq >= 0 && irq < 16);
-//     u16 port;
-//     if (irq < 8)
-//     {
-//         port = PIC_M_DATA;
-//     }
-//     else
-//     {
-//         port = PIC_S_DATA;
-//         irq -= 8;
-//     }
-//     if (enable)
-//     {
-//         outb(port, inb(port) & ~(1 << irq));
-//     }
-//     else
-//     {
-//         outb(port, inb(port) | (1 << irq));
-//     }
-// }
+void set_interrupt_mask(u32 irq, bool enable)
+{
+    assert(irq >= 0 && irq < 16);
+    u16 port;
+    if (irq < 8)
+    {
+        port = PIC_M_DATA;
+    }
+    else
+    {
+        port = PIC_S_DATA;
+        irq -= 8;
+    }
+    if (enable)
+    {
+        outb(port, inb(port) & ~(1 << irq));
+    }
+    else
+    {
+        outb(port, inb(port) | (1 << irq));
+    }
+}
 
-// // 清除 IF 位，返回设置之前的值
-// bool interrupt_disable()
-// {
-//     asm volatile(
-//         "pushfl\n"        // 将当前 eflags 压入栈中
-//         "cli\n"           // 清除 IF 位，此时外中断已被屏蔽
-//         "popl %eax\n"     // 将刚才压入的 eflags 弹出到 eax
-//         "shrl $9, %eax\n" // 将 eax 右移 9 位，得到 IF 位
-//         "andl $1, %eax\n" // 只需要 IF 位
-//     );
-// }
+// 清除 IF 位，返回设置之前的值
+bool interrupt_disable()
+{
+    asm volatile(
+        "pushfl\n"        // 将当前 eflags 压入栈中
+        "cli\n"           // 清除 IF 位，此时外中断已被屏蔽
+        "popl %eax\n"     // 将刚才压入的 eflags 弹出到 eax
+        "shrl $9, %eax\n" // 将 eax 右移 9 位，得到 IF 位
+        "andl $1, %eax\n" // 只需要 IF 位
+    );
+}
 
-// // 获得 IF 位
-// bool get_interrupt_state()
-// {
-//     asm volatile(
-//         "pushfl\n"        // 将当前 eflags 压入栈中
-//         "popl %eax\n"     // 将压入的 eflags 弹出到 eax
-//         "shrl $9, %eax\n" // 将 eax 右移 9 位，得到 IF 位
-//         "andl $1, %eax\n" // 只需要 IF 位
-//     );
-// }
+// 获得 IF 位
+bool get_interrupt_state()
+{
+    asm volatile(
+        "pushfl\n"        // 将当前 eflags 压入栈中
+        "popl %eax\n"     // 将压入的 eflags 弹出到 eax
+        "shrl $9, %eax\n" // 将 eax 右移 9 位，得到 IF 位
+        "andl $1, %eax\n" // 只需要 IF 位
+    );
+}
 
-// // 设置 IF 位
-// void set_interrupt_state(bool state)
-// {
-//     if (state)
-//         asm volatile("sti\n");
-//     else
-//         asm volatile("cli\n");
-// }
+// 设置 IF 位
+void set_interrupt_state(bool state)
+{
+    if (state)
+        asm volatile("sti\n");
+    else
+        asm volatile("cli\n");
+}
 
-
+            int count;
 void default_handler(int vector)
 {
-    send_eoi(vector);
-    // DEBUGK("[%x] default interrupt called...%04d\n", vector,count++);
-    schedule();
+    send_eoi(vector);  
+    DEBUGK("[%x] default interrupt called...%04d\n", vector,count++);
+    // schedule(); 
+      
 }
-              
+                
 void exception_handler(
     int vector,
     u32 edi, u32 esi, u32 ebp, u32 esp,
@@ -177,7 +178,7 @@ void pic_init()
     outb(PIC_S_DATA, 2);          // ICW3: 设置从片连接到主片的 IR2 引脚
     outb(PIC_S_DATA, 0b00000001); // ICW4: 8086模式, 正常EOI
 
-    outb(PIC_M_DATA, 0b11111110); // 关闭所有中断
+    outb(PIC_M_DATA, 0b11111100); // 关闭所有中断
     outb(PIC_S_DATA, 0b11111111); // 关闭所有中断
     
 }
@@ -201,21 +202,21 @@ void idt_init()
         gate->present = 1;       // 有效
     }
     
-    for (size_t i = 0; i < ENTRY_SIZE; i++)
+    for (size_t i = 0; i < 0x20; i++)
     {
-        handler_table[i] = default_handler;
+        handler_table[i] = exception_handler;
     }
 
 
     
     // handler_table[0xe] = page_fault;  
 
-    // for (size_t i = 0x20; i < ENTRY_SIZE; i++)
-    // {
-    //     handler_table[i] = default_handler;
-    // }
+    for (size_t i = 0x20; i < ENTRY_SIZE; i++)
+    {
+        handler_table[i] = default_handler;
+    }
 
-    // // 初始化系统调用
+    // 初始化系统调用
     // gate_t *gate = &idt[0x80];
     // gate->offset0 = (u32)syscall_handler & 0xffff;
     // gate->offset1 = ((u32)syscall_handler >> 16) & 0xffff;

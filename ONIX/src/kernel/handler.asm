@@ -5,6 +5,9 @@
 
 extern handler_table
 extern task_signal
+global handler_entry_table
+global interrupt_exit
+
 
 section .text     
 
@@ -18,6 +21,8 @@ interrupt_handler_%1:
     push %1; 压入中断向量，跳转到中断入口
     jmp interrupt_entry
 %endmacro
+
+
 
 interrupt_entry:
 
@@ -36,8 +41,9 @@ interrupt_entry:
 
     ; 调用中断处理函数，handler_table 中存储了中断处理函数的指针
     call [handler_table + eax * 4]
+    ; handler_table是一个指针数组，这里只当它是个数组，call时取它的首地址，得到它的第eax个数据
 
-global interrupt_exit
+
 interrupt_exit:
 
     ; 对应 push eax，调用结束恢复栈
@@ -57,10 +63,10 @@ interrupt_exit:
     ; 对应 error code 或 push magic
     add esp, 8
 
-    xchg bx,bx
+    ; xchg bx,bx
 
     iret
-
+; 执行宏，生成  interrupt_handler_0x__:
 INTERRUPT_HANDLER 0x00, 0; divide by zero
 INTERRUPT_HANDLER 0x01, 0; debug
 INTERRUPT_HANDLER 0x02, 0; non maskable interrupt
@@ -120,7 +126,8 @@ INTERRUPT_HANDLER 0x2f, 0; harddisk2 硬盘从通道
 
 ; 下面的数组记录了每个中断入口函数的指针
 section .data
-global handler_entry_table
+
+; 把interrupt_heandler_0x__: 标签的地址写成表格形式
 handler_entry_table:
     dd interrupt_handler_0x00
     dd interrupt_handler_0x01

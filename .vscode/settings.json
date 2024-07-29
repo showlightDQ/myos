@@ -9,7 +9,10 @@
         "assert.h": "c",
         "io.h": "c",
         "global.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "interrupt.h": "c",
+        "timer.h": "c",
+        "debug.h": "c"
     },
     "C_Cpp.dimInactiveRegions": false
 }
