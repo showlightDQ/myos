@@ -11,6 +11,10 @@
 #include <onix/task.h>
 #include <onix/interrupt.h>
 #include <onix/stdlib.h>
+// #include <onix/time.h>
+
+extern void time_init();
+
 
 extern void clock_init();
 // #define CRT_ADDR_REG 0x3d4
@@ -31,6 +35,7 @@ void kernel_init()
      interrupt_init();
      // task_init();
      clock_init();
+     time_init();
      asm volatile("sti\n");
      hang();
   

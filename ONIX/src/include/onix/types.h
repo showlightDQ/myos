@@ -16,7 +16,9 @@
     typedef char int8 ;
     typedef short int16 ;
     typedef int    int32 ;
+    typedef int time_t ;
     typedef long long int64 ;
+
 
     typedef unsigned char u8 ;
     typedef unsigned short u16 ;

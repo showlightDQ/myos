@@ -12,7 +12,8 @@
         "stdio.h": "c",
         "interrupt.h": "c",
         "timer.h": "c",
-        "debug.h": "c"
+        "debug.h": "c",
+        "time.h": "c"
     },
     "C_Cpp.dimInactiveRegions": false
 }
