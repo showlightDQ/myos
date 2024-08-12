@@ -153,23 +153,20 @@ bochs : master.img
 bochsg : master.img
 	bochs -f ../bochs/bochsrc_gdb -q  
 
-qemu : master.img 
-	qemu-system-i386 \
-	-m 32M \
-	-boot c \
-	-drive file=$(BUILD)/$<,if=ide,index=0,media=disk,format=raw \
-	-audiodev pa,id=hda \
-	-machine pcspk-audiodev=hda
 
-	
-qemug : master.img 
-	qemu-system-i386 \
-	-s -S \
+QEMU  =qemu-system-i386 \
 	-m 32M \
 	-boot c \
 	-drive file=$(BUILD)/$<,if=ide,index=0,media=disk,format=raw \
 	-audiodev pa,id=hda \
 	-machine pcspk-audiodev=hda \
+	-rtc base=localtime
+
+qemu : master.img 
+	$(QEMU)
+	
+qemug : master.img 
+	$(QEMU) -s -S 
 
 	
 

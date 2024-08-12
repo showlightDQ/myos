@@ -6,6 +6,7 @@
 #include <onix/time.h>
 #include <onix/assert.h>
 #include <onix/stdlib.h>
+#include <onix/rtc.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 

@@ -13,7 +13,8 @@
         "interrupt.h": "c",
         "timer.h": "c",
         "debug.h": "c",
-        "time.h": "c"
+        "time.h": "c",
+        "ctime": "c"
     },
     "C_Cpp.dimInactiveRegions": false
 }
