@@ -98,12 +98,14 @@ void set_alarm(u32 secs)
 
 void rtc_init()
 {
-    // cmos_write(CMOS_B, 0b01000010); // 打开周期中断
+    cmos_write(CMOS_B, 0b01000010); // 打开周期中断
 
     // 设置中断频率
     // outb(CMOS_A, (inb(CMOS_A) & 0xf) | 0b1110);
+    set_alarm(3);
 
     set_interrupt_handler(IRQ_RTC, rtc_handler);
     set_interrupt_mask(IRQ_RTC, true);
     set_interrupt_mask(IRQ_CASCADE, true);
+
 }

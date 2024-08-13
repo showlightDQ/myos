@@ -14,7 +14,8 @@
         "timer.h": "c",
         "debug.h": "c",
         "time.h": "c",
-        "ctime": "c"
+        "ctime": "c",
+        "rtc.h": "c"
     },
     "C_Cpp.dimInactiveRegions": false
 }

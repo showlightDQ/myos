@@ -106,7 +106,7 @@ kernel.bin:  kernel.o  \
 		stdlib.o \
 		clock.o  \
 		time.o \
-		rtc.o
+		rtc.o 
 
 		    # 此处 文件先后 可能影响 dbg 的效果。
 	ld -m elf_i386 -Bstatic \
