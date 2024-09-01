@@ -36,8 +36,9 @@ void kernel_init()
      interrupt_init();
      // task_init();
      // clock_init();
-     time_init();
-     rtc_init();
+     // set_alarm(2);
+     // time_init();
+     // rtc_init();
      asm volatile("sti\n");
      hang();
   

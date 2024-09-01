@@ -15,7 +15,8 @@
         "debug.h": "c",
         "time.h": "c",
         "ctime": "c",
-        "rtc.h": "c"
+        "rtc.h": "c",
+        "bitmap.h": "c"
     },
     "C_Cpp.dimInactiveRegions": false
 }

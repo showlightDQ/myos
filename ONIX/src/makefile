@@ -69,6 +69,8 @@ master.img : boot.bin \
 	yes | bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $(BUILD)/$@
 	dd if=$(BUILD)/boot/boot.bin   of=$(BUILD)/$@ bs=512 count=1   conv=notrunc seek=0
 	dd if=$(BUILD)/boot/loader.bin of=$(BUILD)/$@ bs=512 count=3   conv=notrunc seek=1
+	test -n "$$(find $(BUILD)/system.bin -size -100k)"     
+	# ; 检查system.bin的大小，不能大于100k
 	dd if=$(BUILD)/system.bin      of=$(BUILD)/$@ bs=512 count=200 conv=notrunc seek=4
 
 %.s : $(SRC)/kernel/%.c 
@@ -106,7 +108,8 @@ kernel.bin:  kernel.o  \
 		stdlib.o \
 		clock.o  \
 		time.o \
-		rtc.o 
+		rtc.o \
+		memory.o
 
 		    # 此处 文件先后 可能影响 dbg 的效果。
 	ld -m elf_i386 -Bstatic \
@@ -128,6 +131,7 @@ kernel.bin:  kernel.o  \
 	$(KERNEL)/$(word 16,$^)  \
 	$(KERNEL)/$(word 17,$^)  \
 	$(KERNEL)/$(word 18,$^)  \
+	$(KERNEL)/$(word 19,$^)  \
 	-o $(KERNEL)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
 	objcopy -O binary $(KERNEL)/$< $(BUILD)/$@  

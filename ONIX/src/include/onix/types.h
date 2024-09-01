@@ -1,12 +1,15 @@
+#include<onix/onix.h>
 #ifndef ONIX_TYPES_H
     #define ONIx_TYPES_H
 
     #define EOF -1
     #define EOS '\0'
     #define NULL ((void*)0)
+#ifndef __CPLUSPLUS
     #define bool _Bool 
     #define true 1
     #define false 0
+#endif
     #define _packed __attribute__((packed))
     #define _ofp __attribute__((optimize("omit-frame-pointer")))
 

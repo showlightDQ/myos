@@ -1,7 +1,44 @@
 [org 0x1000]
 db 0x55,0xaa
 ;  xchg bx,bx
- 
+call check_memory
+jmp prepare_protect_mode
+
+ check_memory:
+    pusha
+    mov ax,0
+    mov es,ax
+    ;设置参数
+    xor ebx,ebx
+    mov edx,0x534d4150  ;固定签名 SMAP
+    mov di,ards_buffer   ;存储位置
+
+    .next:
+        mov eax,0xe820  ;子功能码
+        mov ecx,20      ;返回结构体为20Byte
+        int 0x15
+        jc .error     ;溢出位F位为1时为出错。
+
+        add di,cx     ;存储位置后移20Byte
+        inc dword[ards_count]   ;计数加1
+        cmp ebx,0              ;返回结束？
+        jnz .next              ;继续
+        .error:    
+    popa
+    ret
+    show_memory_check:
+        mov cx,[ards_count]
+        mov si,0
+        .check_loop:
+            mov eax,[si + ards_buffer]
+            mov ebx,[si + ards_buffer + 8]
+            mov edx,[si + ards_buffer +16]
+            add si,20    
+            xchg bx,bx
+            loop .check_loop
+        ret
+
+
 prepare_protect_mode:
      
     cli
@@ -384,49 +421,21 @@ protect_mode_entrance:
         mov bl,200
         mov edi,0x10000
         call read_disk
-        ;  xchg bx,bx
+         xchg bx,bx
+        
+        mov eax,0x20220205  
+        mov ebx,ards_count
+        ;增加以上两行，以更好地兼容grub
         jmp code_selector:0x10000
 jmp $  
 
 str_pt:
     db "In protect mode!!!!!",0
-check_memory:
-    pusha
-    mov ax,0
-    mov es,ax
-    ;设置参数
-    xor ebx,ebx
-    mov edx,0x534d4150  ;固定签名 SMAP
-    mov di,ards_buffer   ;存储位置
 
-    .next:
-        mov eax,0xE820  ;子功能码
-        mov ecx,20      ;返回结构体为20Byte
-        int 0x15
-        jc .error     ;溢出位F位为1时为出错。
-
-        add di,cx     ;存储位置后移20Byte
-        inc word[ards_count]   ;计数加1
-        cmp ebx,0              ;返回结束？
-        jnz .next              ;继续
-        .error:    
-    popa
-    ret
-    show_memory_check:
-        mov cx,[ards_count]
-        mov si,0
-        .check_loop:
-            mov eax,[si + ards_buffer]
-            mov ebx,[si + ards_buffer + 8]
-            mov edx,[si + ards_buffer +16]
-            add si,20    
-            xchg bx,bx
-            loop .check_loop
-        ret
     ;=====检测信息存储区=============================
         ards_count:
-        dw 0
-        db "buffer",0xff,0xff
+        dd 0
+        ; db "buffer",0xff,0xff
         ards_buffer:
         times 512 db 0xff,0xff,
 

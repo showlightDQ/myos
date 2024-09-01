@@ -102,7 +102,7 @@ void rtc_init()
 
     // 设置中断频率
     // outb(CMOS_A, (inb(CMOS_A) & 0xf) | 0b1110);
-    set_alarm(3);
+    // set_alarm(3);
 
     set_interrupt_handler(IRQ_RTC, rtc_handler);
     set_interrupt_mask(IRQ_RTC, true);
