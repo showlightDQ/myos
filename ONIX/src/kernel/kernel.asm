@@ -9,12 +9,12 @@ _start:
     ;两个参数
     push ebx  ;ards 
     push eax  ;magic 0x20220205
-    ; mov dword [0xFFFFF],eax
     call console_init
     call gdt_init
     call memory_init
     ; xchg bx,bx
     call kernel_init
+    mov dword [0x400001],eax
     
     xchg bx,bx
 

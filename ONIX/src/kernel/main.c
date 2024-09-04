@@ -30,17 +30,18 @@ void kernel_init()
 {
      
      asm volatile("xchgw %bx, %bx");
+     interrupt_init();
      memory_map_init();
 
-     interrupt_init();
      // task_init();
      // clock_init();
      // set_alarm(2);
      // time_init();
      // rtc_init();
      asm volatile("sti\n");
+     int *p_test = (int *)0x400001;
+     *p_test = 0x55aa;
      hang();
-  
 
      return;
 }

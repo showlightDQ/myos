@@ -41,7 +41,7 @@ jmp prepare_protect_mode
 
 prepare_protect_mode:
      
- xchg bx,bx
+
     cli
 
     in al,0x92   ;0x92端口寄存器的第1位是A20线控制位，0：地址回绕，地址大于1M后，实际访问地址值与1M的余数。 1：地址不回绕
@@ -140,7 +140,7 @@ setup_page:
         
         ;PTE :Page Table Entry
         ;PDE :Page Director Entry
-    PDE equ 0x2000  ;定义 0x2000~0x2FFF  PDE里面有1024个页的索引，每个索引4字节，共4K字节=0x1000
+    PDE equ 0x2000  ;定义 0x2000~0x2FFF  PDE里面有1024个页的索引，每个索引4字节，共4K字节=0x1000（0-0xfff)
         ;PDE :Page Directory Entry
     PTE equ 0x3000  ;定义 0x3000~0x3FFF  PTE里面有1024个页，每个页有4k空间，
     ATTR equ 0b11   ;定义页表属性：在内存中，可写
@@ -158,8 +158,8 @@ setup_page:
         ;global : 1     1全局位，应该放在快表中
         ;available :3   1留给系统用
         ;index : 20     页索引，1M
-
-
+    mov eax,0x55555555
+    mov [0x2fff],eax; 测试一下清零的效果，接下来的
 
     mov eax, PDE    ;清空 PDE
     call .clear_page
@@ -168,6 +168,7 @@ setup_page:
 
     ;前面的1M内存  映射在1M
     ;前面的1M内存  映射到0xC000_0000 - 0xC0100_0000 
+    xchg bx,bx
 
     mov eax, PTE
     or eax, ATTR
@@ -184,9 +185,11 @@ setup_page:
         ;最后一个页表指向页目录
        
     mov ebx, PTE
-    ; mov ecx, (0x100000 / 0x1000); 1M/4K = 256 
-     mov ecx, (0x300000 / 0x1000); 1M/4K = 256 
-        ;只设置256个PTE表，设置1M的可访问空间。有768个表没有设置。
+    ; mov ecx, (0x100000 / 0x1000); 1M/4K = 256 这里设计只能访问0~1M的地址，每个页管4K，只需要写256（0x80）个页表
+                                                 ;设置后,线性地址 0x00000000-0x000FFFFF 可用
+     mov ecx, (0x400000 / 0x1000); 4M/4K = 512   为了可以访问4M内的空间，我改了一下，设置1024页表，每个页表4字节，共要用4K（0x1000）的空间，
+                                                ;页表地址从0x3000到0x3FFC                                                   
+        
     mov esi,0
     
     .next_page:
@@ -211,10 +214,10 @@ setup_page:
     mov cr0, eax   ;开启映射 
     ret 
         .clear_page:
-        ; xchg bx,bx
-            mov ecx,0x400
+         xchg bx,bx
+            mov ecx,0x400  ;再研究loop的工作原理
             .loop_clear_page:
-                mov dword [eax+ecx*4],0x0
+                mov dword [eax+ecx*4],0x0 ;这里逻辑有问题，地址应该向前移4字节，否则污染了下一个页表的头。
                 loop .loop_clear_page
             ret
 
@@ -420,9 +423,12 @@ protect_mode_entrance:
 
         mov ebx , 0x100001
         mov [ebx],eax        
-         mov [0x100000],ebx
+        mov [0x100000],ebx
         
-        ; call setup_page
+
+
+
+        call setup_page
 
         mov ecx,4
         mov bl,200
@@ -430,9 +436,9 @@ protect_mode_entrance:
         call read_disk
         xchg bx,bx
 
-        ;    mov ebx , 0x100001
-        ; mov [ebx],eax        
-        ;  mov [0x100000],ebx
+        mov ebx , 0x100008
+        mov [ebx],eax        
+        mov [0x100000],ebx
         
         mov eax,0x20220205  
         mov ebx,ards_count
