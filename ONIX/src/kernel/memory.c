@@ -2,7 +2,7 @@
 #include <onix/types.h>
 #include <onix/debug.h>
 #include <onix/assert.h>
-// #include <onix/stdlib.h>
+#include <onix/stdlib.h>
 #include <onix/string.h>
 // #include <onix/bitmap.h>
 // #include <onix/multiboot2.h>
@@ -137,34 +137,34 @@ static u32 start_page = 0;   // 可分配物理内存起始位置
 static u8 *memory_map;       // 物理内存数组
 static u32 memory_map_pages; // 物理内存数组占用的页数
 
-// void memory_map_init()
-// {
-//     // 初始化物理内存数组
-//     memory_map = (u8 *)memory_base;
+void memory_map_init()
+{
+    // 初始化物理内存数组
+    memory_map = (u8 *)memory_base;
 
-//     // 计算物理内存数组占用的页数
-//     memory_map_pages = div_round_up(total_pages, PAGE_SIZE);
-//     LOGK("Memory map page count %d\n", memory_map_pages);
+    // 计算物理内存数组占用的页数
+    memory_map_pages = div_round_up(total_pages, PAGE_SIZE);
+    LOGK("Memory map page count %d\n", memory_map_pages);
 
-//     free_pages -= memory_map_pages;
+    free_pages -= memory_map_pages;
 
-//     // 清空物理内存数组
-//     memset((void *)memory_map, 0, memory_map_pages * PAGE_SIZE);
+    // 清空物理内存数组
+    memset((void *)memory_map, 0, memory_map_pages * PAGE_SIZE);
 
-//     // 前 1M 的内存位置 以及 物理内存数组已占用的页，已被占用
-//     start_page = IDX(MEMORY_BASE) + memory_map_pages;
-//     for (size_t i = 0; i < start_page; i++)
-//     {
-//         memory_map[i] = 1;
-//     }
+    // 前 1M 的内存位置 以及 物理内存数组已占用的页，已被占用
+    start_page = IDX(MEMORY_BASE) + memory_map_pages;
+    for (size_t i = 0; i < start_page; i++)
+    {
+        memory_map[i] = 1;
+    }
 
-//     LOGK("Total pages %d free pages %d\n", total_pages, free_pages);
+    LOGK("Total pages %d free pages %d\n", total_pages, free_pages);
 
-//     // 初始化内核虚拟内存位图，需要 8 位对齐
-//     u32 length = (IDX(KERNEL_MEMORY_SIZE) - IDX(MEMORY_BASE)) / 8;
-//     bitmap_init(&kernel_map, (u8 *)KERNEL_MAP_BITS, length, IDX(MEMORY_BASE));
-//     bitmap_scan(&kernel_map, memory_map_pages);
-// }
+    // 初始化内核虚拟内存位图，需要 8 位对齐
+    u32 length = (IDX(KERNEL_MEMORY_SIZE) - IDX(MEMORY_BASE)) / 8;
+    // bitmap_init(&kernel_map, (u8 *)KERNEL_MAP_BITS, length, IDX(MEMORY_BASE));
+    // bitmap_scan(&kernel_map, memory_map_pages);
+}
 
 // 分配一页物理内存
 static u32 get_page()

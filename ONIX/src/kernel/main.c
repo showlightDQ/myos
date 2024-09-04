@@ -12,6 +12,7 @@
 #include <onix/interrupt.h>
 #include <onix/stdlib.h>
 #include <onix/rtc.h>
+#include <onix/memory.h>
 // #include <onix/time.h>
 
 extern void time_init();
@@ -29,10 +30,8 @@ void kernel_init()
 {
      
      asm volatile("xchgw %bx, %bx");
-          
-     console_init();
-     
-     gdt_init();
+     memory_map_init();
+
      interrupt_init();
      // task_init();
      // clock_init();

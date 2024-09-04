@@ -41,6 +41,7 @@ jmp prepare_protect_mode
 
 prepare_protect_mode:
      
+ xchg bx,bx
     cli
 
     in al,0x92   ;0x92端口寄存器的第1位是A20线控制位，0：地址回绕，地址大于1M后，实际访问地址值与1M的余数。 1：地址不回绕
@@ -52,14 +53,14 @@ prepare_protect_mode:
     mov eax,cr0
     or eax,1
     mov cr0,eax ;设置CR0的第0位为1，打开保护模式
-   
+  
       
     jmp word code_selector:protect_mode_entrance 
     ;长跳转，可更新缓冲区的旧命令
     ud2 ; 出错代码，如果跳转不成功，可以卡在这里。
 
-[bits 32]
-;定义ＧＤＴ指针。　即　ＬＧＤＴ加载的内容
+ [bits 32]
+ ;定义ＧＤＴ指针。　即　ＬＧＤＴ加载的内容
     gdt_ptr:  ;GDT指针定义  LGDT 指令加载的内容！  
                 ;通过LGDT gdt_ptr 命令告诉CPU从这里读取前16位数据是GDT的长度，最多可表示到64KB的表长度，除以8字节，最多可以有8192个描述符。
                 ;（其实是长度-1，limit，表示读取时的最末端字节的偏移量）
@@ -67,7 +68,7 @@ prepare_protect_mode:
     dw  (gdt_end - gdt_base - 1) ; GDT的总长度 limit（其实是最后一个字节的偏移量，它等于GDT总字节数-1.
     dd gdt_base  ;GDT 起始地址  
 
-;定义段选择子
+ ;定义段选择子
     ;用于放在段寄存器里面，指明用哪个 GDT 描述
         ;其实是16位的数，
         ;0~1位 RPL 请求特权级，表示生成这个选择子的权限
@@ -89,7 +90,7 @@ prepare_protect_mode:
         dw limit &  0xffff   ;  取GDT的低16位limit
         dw base & 0xffff   ;取base的低16位（0~15）
         db (base >> 16) & 0xff  ;取base的16~23位
-        db 0b1110 | 0b1001_0000  ;0x9e
+        db 0b1010 | 0b1001_0000  ;0x9e
             ;1110： 低4位是段类型，| E | C/D | R/W | A | 表示：代码段，依从，可读，没有访问过
             ;segment =1 的情况
             ;Executable E:1代码段 E:0数据段 
@@ -111,7 +112,7 @@ prepare_protect_mode:
         dw limit &  0xffff   ;  取GDT的低16位limit
         dw base & 0xffff   ;取base的低16位（0~15）
         db (base >> 16) & 0xff  ;取base的16~23位
-        db 0b0010 | 0b01001_0000  ;0x12    数据段，0等级，内存；
+        db 0b0000_0010 | 0b01001_0000  ;0x12    数据段，0等级，内存；
         db 0b1100_0000 | (limit >> 16)
         db (base >> 24 ) & 0xff  ;base的高8位
     gdt_test:  ;测试数据段
@@ -129,10 +130,10 @@ prepare_protect_mode:
 
 
 setup_page:
-        ;32位系统可寻址内存共4G，4K为一页，共有1M页，每页用int 4字节表示，共需要4M 的页表
+        ;32位系统可寻址内存共4G，4K为一页，共有1M页，每页用int 4字节表示(32位中的12们用来寻表址就够了），共需要4M 的页表
         ;二级页表系统：
-        ;第一级PDT存储1K个表的起始地址，负责读取线性地址的前10位，选出一个表来，
-            ;表内的中间10位可指向一个1K个的PTE表的起始地址（高10位不用？），如：中间十位为0b00_0000_1111则它指向0xf000的物理地址，作为PTE的基址（自动补三个零）
+        ;第一级PDT存储1K个表信息（每个表信息4字节）的起始地址（表占4K空间），负责解释线性地址的高10位，选出一个表来，
+            ;表信息的中间10位可指向一个1K个的PTE表的起始地址（高10位不用？），如：中间十位为0b00_0000_1111则它指向0xf000的物理地址，作为PTE的基址（自动补三个零）
             ;低12位表明属性。
         ;第二级页表PTE可存储1K个表，每个表对应线性地址的中间10位。表数据的后20位作为物理地址的高20位，指定一个4K的物理地址区域，
             ;与线性地址的低12们共同组成一个32位的地址。可访问4G的内存空间。PTE表的低12位说明该地址的属性。
@@ -183,7 +184,8 @@ setup_page:
         ;最后一个页表指向页目录
        
     mov ebx, PTE
-    mov ecx, (0x100000 / 0x1000); 1M/4K = 256 
+    ; mov ecx, (0x100000 / 0x1000); 1M/4K = 256 
+     mov ecx, (0x300000 / 0x1000); 1M/4K = 256 
         ;只设置256个PTE表，设置1M的可访问空间。有768个表没有设置。
     mov esi,0
     
@@ -257,6 +259,7 @@ read_disk:  ;从硬盘的第ecx扇区读取bl个扇区，读入内存地址edi�
     ;ecx-读取的硬盘起始扇区
     ;bl-读取的扇区数量
     pushad
+    push es
 
     mov dx,0x1f2
     mov al,bl
@@ -299,7 +302,7 @@ read_disk:  ;从硬盘的第ecx扇区读取bl个扇区，读入内存地址edi�
         call .read_512byte
         pop cx
         loop .read_many
-
+    pop es
     popad
     ret
     .check_read_state:
@@ -413,15 +416,23 @@ protect_mode_entrance:
         mov esi,str_pt;
         mov edi,80
         call print_string
-        ; xchg bx,bx
+        xchg bx,bx
+
+        mov ebx , 0x100001
+        mov [ebx],eax        
+         mov [0x100000],ebx
         
-        call setup_page
+        ; call setup_page
 
         mov ecx,4
         mov bl,200
         mov edi,0x10000
         call read_disk
-         xchg bx,bx
+        xchg bx,bx
+
+        ;    mov ebx , 0x100001
+        ; mov [ebx],eax        
+        ;  mov [0x100000],ebx
         
         mov eax,0x20220205  
         mov ebx,ards_count

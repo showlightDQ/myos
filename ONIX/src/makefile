@@ -71,7 +71,7 @@ master.img : boot.bin \
 	dd if=$(BUILD)/boot/loader.bin of=$(BUILD)/$@ bs=512 count=3   conv=notrunc seek=1
 	test -n "$$(find $(BUILD)/system.bin -size -100k)"     
 	# ; 检查system.bin的大小，不能大于100k
-	dd if=$(BUILD)/system.bin      of=$(BUILD)/$@ bs=512 count=200 conv=notrunc seek=4
+	dd if=$(BUILD)/system.bin      of=$(BUILD)/$@ bs=512 count=1000 conv=notrunc seek=4
 
 %.s : $(SRC)/kernel/%.c 
 	gcc -m32 -fverbose-asm -nostartfiles -mpreferred-stack-boundary=2 -Qn -fno-pic -fno-asynchronous-unwind-tables $(CFLAGS) $(INCLUDE) -s $< -o ${TEST}/$@
