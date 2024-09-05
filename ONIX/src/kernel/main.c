@@ -19,6 +19,8 @@ extern void time_init();
 extern void rtc_init();
 
 extern void clock_init();
+extern void page_test();
+
 // #define CRT_ADDR_REG 0x3d4
 // #define CRT_DATA_REG 0x3d5
 
@@ -39,8 +41,8 @@ void kernel_init()
      // time_init();
      // rtc_init();
      asm volatile("sti\n");
-     int *p_test = (int *)0x400001;
-     *p_test = 0x55aa;
+     page_test();
+
      hang();
 
      return;

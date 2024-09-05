@@ -112,10 +112,15 @@ void memory_init(u32 magic, u32 addr)
     {
         panic("Memory init magic unknown 0x%p\n", magic);
     }
-
+    int sizeM = memory_size >> 20;
+    int sizeK = memory_size & 0xfffff;
+    sizeK = sizeK >> 10;
+    int sizeB = memory_size & 0b1111111111;
+    
     LOGK("ARDS count %d\n", count);
     LOGK("Memory base 0x%p\n", (u32)memory_base);
     LOGK("Memory size 0x%p\n", (u32)memory_size);
+    LOGK("Memory size %dM %dK %dB\n", sizeM,sizeK,sizeB);
 
     assert(memory_base == MEMORY_BASE); // 内存开始的位置为 1M
     assert((memory_size & 0xfff) == 0); // 要求按页对齐
@@ -148,20 +153,20 @@ void memory_map_init()
 
     free_pages -= memory_map_pages;
 
-    // 清空物理内存数组
+    // 0x100000起始的 8K 空间用来标记 页使用情况，设0表示标记为未使用
     memset((void *)memory_map, 0, memory_map_pages * PAGE_SIZE);
 
     // 前 1M 的内存位置 以及 物理内存数组已占用的页，已被占用
-    start_page = IDX(MEMORY_BASE) + memory_map_pages;
+    start_page = IDX(MEMORY_BASE) + memory_map_pages;  //从0地址算起，MEMORY_BASE前面的页（1024）加页目录用掉的页，等于起始页（在整个内存从零开始的第start_page页）
     for (size_t i = 0; i < start_page; i++)
     {
-        memory_map[i] = 1;
+        memory_map[i] = 1; // 0x100000后的每一个字节作为一个页的标志，把0到free_page前的页的标志设为1（已使用）
     }
 
     LOGK("Total pages %d free pages %d\n", total_pages, free_pages);
 
     // 初始化内核虚拟内存位图，需要 8 位对齐
-    u32 length = (IDX(KERNEL_MEMORY_SIZE) - IDX(MEMORY_BASE)) / 8;
+    // u32 length = (IDX(KERNEL_MEMORY_SIZE) - IDX(MEMORY_BASE)) / 8;
     // bitmap_init(&kernel_map, (u8 *)KERNEL_MAP_BITS, length, IDX(MEMORY_BASE));
     // bitmap_scan(&kernel_map, memory_map_pages);
 }
@@ -717,3 +722,20 @@ static u32 copy_page(void *page)
 //     LOGK("task 0x%p name %s brk 0x%p page fault\n", task, task->name, task->brk);
 //     panic("page fault!!!");
 // }
+
+void page_test()
+{
+    char *p_addr[10];
+    for (int i = 0; i < 10; i++)
+    {
+        p_addr[i] = get_page();
+        printk("%p \n", p_addr[i]);
+    }
+    
+    for (int i = 0; i < 10; i++)
+    {
+         put_page(p_addr[i] );
+        printk("%p \n", p_addr[i]);
+    }
+
+}

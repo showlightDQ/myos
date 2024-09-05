@@ -17,7 +17,8 @@
         "ctime": "c",
         "rtc.h": "c",
         "bitmap.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "memory.h": "c"
     },
     "C_Cpp.dimInactiveRegions": false
 }
