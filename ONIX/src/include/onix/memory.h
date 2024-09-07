@@ -92,5 +92,8 @@ page_entry_t *copy_pde();
 
 // 释放页目录
 void free_pde();
+void memory_map_init();
+void memory_init(u32 magic, u32 addr);
+void mapping_init();
 
 #endif

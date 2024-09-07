@@ -4,12 +4,13 @@
 #include <onix/assert.h>
 #include <onix/stdlib.h>
 #include <onix/string.h>
-// #include <onix/bitmap.h>
+#include <onix/bitmap.h>
 // #include <onix/multiboot2.h>
 #include <onix/task.h>
 // #include <onix/syscall.h>
 // #include <onix/fs.h>
 #include <onix/printk.h>
+#include <onix/io.h>
 #include <onix/onix.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
@@ -238,15 +239,15 @@ void set_cr3(u32 pde)
 }
 
 // 将 cr0 寄存器最高位 PG 置为 1，启用分页
-// static _inline void enable_page()
-// {
-//     // 0b1000_0000_0000_0000_0000_0000_0000_0000
-//     // 0x80000000
-//     asm volatile(
-//         "movl %cr0, %eax\n"
-//         "orl $0x80000000, %eax\n"
-//         "movl %eax, %cr0\n");
-// }
+static _inline void enable_page()
+{
+    // 0b1000_0000_0000_0000_0000_0000_0000_0000
+    // 0x80000000
+    asm volatile(
+        "movl %cr0, %eax\n"
+        "orl $0x80000000, %eax\n"
+        "movl %eax, %cr0\n");
+}
 
 // 初始化页表项
 static void entry_init(page_entry_t *entry, u32 index)
@@ -259,60 +260,64 @@ static void entry_init(page_entry_t *entry, u32 index)
 }
 
 // 初始化内存映射
-// void mapping_init()
-// {
-//     page_entry_t *pde = (page_entry_t *)KERNEL_PAGE_DIR;
-//     memset(pde, 0, PAGE_SIZE);
+void mapping_init()
+{
+    page_entry_t *pde = (page_entry_t *)KERNEL_PAGE_DIR;
+    memset(pde, 0, PAGE_SIZE);
 
-//     idx_t index = 0;
+    idx_t index = 0;
 
-//     for (idx_t didx = 0; didx < (sizeof(KERNEL_PAGE_TABLE) / 4); didx++)
-//     {
-//         page_entry_t *pte = (page_entry_t *)KERNEL_PAGE_TABLE[didx];
-//         memset(pte, 0, PAGE_SIZE);
+    for (idx_t didx = 0; didx < (sizeof(KERNEL_PAGE_TABLE) / 4); didx++)
+    {
+        page_entry_t *pte = (page_entry_t *)KERNEL_PAGE_TABLE[didx];  //PTE指向 4字节结构体， 值为0x 2000，3000，4000 ，5000
+        memset(pte, 0, PAGE_SIZE);  //但却把整个页表都清零了
 
-//         page_entry_t *dentry = &pde[didx];
-//         entry_init(dentry, IDX((u32)pte));
-//         dentry->user = USER_MEMORY; // 只能被内核访问
+        page_entry_t *dentry = &pde[didx]; //dentry指向 PDE的 4个字节  ，pde[0] = 0x1000 pde[1]=0x1004
+        entry_init(dentry, IDX((u32)pte));  // 让每个PDE结构指向一个 pte4K空间的起始位置 0x2000~0x5000
+        dentry->user = USER_MEMORY; // 只能被内核访问
 
-//         for (idx_t tidx = 0; tidx < 1024; tidx++, index++)
-//         {
-//             // 第 0 页不映射，为造成空指针访问，缺页异常，便于排错
-//             if (index == 0)
-//                 continue;
+        for (idx_t tidx = 0; tidx < 1024; tidx++, index++)
+        {
+            // 第 0 页不映射，为造成空指针访问，缺页异常，便于排错
+            if (index == 0)
+                continue;
 
-//             page_entry_t *tentry = &pte[tidx];
-//             entry_init(tentry, index);
-//             tentry->user = USER_MEMORY; // 只能被内核访问
-//             memory_map[index] = 1;      // 设置物理内存数组，该页被占用
-//         }
-//     }
+            page_entry_t *tentry = &pte[tidx];
+            entry_init(tentry, index);
+            tentry->user = USER_MEMORY; // 只能被内核访问
+            memory_map[index] = 1;      // 设置物理内存数组，该页被占用
+        }
+    }
 
-//     // 将最后一个页表指向页目录自己，方便修改
-//     page_entry_t *entry = &pde[1023];
-//     entry_init(entry, IDX(KERNEL_PAGE_DIR));
+    // 将最后一个页表指向页目录自己，方便修改
+    page_entry_t *entry = &pde[1023];
+    entry_init(entry, IDX(KERNEL_PAGE_DIR));
 
-//     // 设置 cr3 寄存器
-//     set_cr3((u32)pde);
-
-//     // 分页有效
-//     enable_page();
-// }
+    // 设置 cr3 寄存器
+    set_cr3((u32)pde);
+    
+    // 分页有效
+    enable_page();
+}
 
 // 获取页目录
 static page_entry_t *get_pde()
 {
-    return (page_entry_t *)(0xfffff000);
+    return (page_entry_t *)(0xfffff000); //该地址经过转换后就是 0x00001ffc
 }
+// pde是page directory entry(0x1000)只是一个入口地址，
+// pdt（page directory table）是pde为始地址的表，把它当作数组则可找到到应的表项，其傎在1000~1fff之间&0xfffffffc
+//pte (page table entry)  页表入口，值存放在PDT（PDE[i]）的index里面，=index<<12
+//pti (page table item暂且这么叫) 是pte[i]下的表项，i由线性地址0x0000_0000_00xx_xxxx_xxxx_0000_0000_0000中的x决定，结构体中的index（20位）<<12指出该线性地址的物理地址页，线性地址的低12位（4K）用来确定具体在页内的哪个字节
 
-// 获取虚拟地址 vaddr 对应的页表
+// 获取虚拟地址 vaddr 对应的一级页表结构体。也就是vaddr地址前面4M空间所在的页表结果体，vddr的4K页结果结构体地址是(get_pte()->index)<<12 | (vaddr>>12&0x3ff)*4
 static page_entry_t *get_pte(u32 vaddr, bool create)
-{
-    page_entry_t *pde = get_pde();
-    u32 idx = DIDX(vaddr);
-    page_entry_t *entry = &pde[idx];
+{    
+    page_entry_t *pde = get_pde(); 
+    u32 idx = DIDX(vaddr); //取线性地址的高10位，index表示 寻找vaddr时先要找到pde数组中的第几个结构体，该结构体管理指向1024个pte表，管理4M内存
+    page_entry_t *entry = &pde[idx]; //entry是已经经过地址映射后的PDE表项地址，值为0x1000~0x1fff
 
-    assert(create || (!create && entry->present));
+    assert(create || (!create && entry->present)); //如果要创建或者 不是创建但该页表存在
 
     page_entry_t *table = (page_entry_t *)(PDE_MASK | (idx << 12));
 
@@ -737,5 +742,16 @@ void page_test()
          put_page(p_addr[i] );
         printk("%p \n", p_addr[i]);
     }
+    BMB;
+    BMB;
+    magic_breakpoint();
+    page_entry_t* p_pte1 = get_pte(0x100004,false);
+    printk("pte1= %p\n", p_pte1);
+    page_entry_t* p_pte2 = get_pte(0x004fffff,false);
+    printk("pte2= %p\n", p_pte2);
+    page_entry_t* p_pte3 = get_pte(0x1000000,true);
+    printk("pte2= %p\n", p_pte3);
 
+    int a = *(int *)(0xfffffffc);
+    printk("0xfffffffc= %p\n", *(int *)(0xfffffffc));
 }

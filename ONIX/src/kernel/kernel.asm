@@ -12,11 +12,11 @@ _start:
     call console_init
     call gdt_init
     call memory_init
-    ; xchg bx,bx
+    ;  
     call kernel_init
     mov dword [0x400001],eax
     
-    xchg bx,bx
+     
 
 
     jmp $

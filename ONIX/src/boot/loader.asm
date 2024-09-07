@@ -1,6 +1,6 @@
 [org 0x1000]
 db 0x55,0xaa
-;  xchg bx,bx
+;   
 call check_memory
 jmp prepare_protect_mode
 
@@ -34,7 +34,7 @@ jmp prepare_protect_mode
             mov ebx,[si + ards_buffer + 8]
             mov edx,[si + ards_buffer +16]
             add si,20    
-            xchg bx,bx
+             
             loop .check_loop
         ret
 
@@ -168,7 +168,7 @@ setup_page:
 
     ;前面的1M内存  映射在1M
     ;前面的1M内存  映射到0xC000_0000 - 0xC0100_0000 
-    xchg bx,bx
+     
 
     mov eax, PTE
     or eax, ATTR
@@ -205,7 +205,7 @@ setup_page:
     ; mov [PDE + 0x3C0 * 4],eax 
     ; mov eax,0x000B8003
     ; mov [PTE + 0*4],eax 
-    ; xchg bx,bx
+    ;  
     ;打开内存映射    
     mov eax , PDE 
     mov cr3, eax  ;装载映射表
@@ -214,7 +214,7 @@ setup_page:
     mov cr0, eax   ;开启映射 
     ret 
         .clear_page:
-         xchg bx,bx
+          
             mov ecx,0x400  ;再研究loop的工作原理
             .loop_clear_page:
                 mov dword [eax+ecx*4],0x0 ;这里逻辑有问题，地址应该向前移4字节，否则污染了下一个页表的头。
@@ -407,7 +407,7 @@ write_disk: ;把内存的esi位置开始的bl个扇区，写入硬盘的第ecx�
 
 
 protect_mode_entrance:  
-        ; xchg bx,bx
+        ;  
         mov ax, data_selector
         mov ds, ax
         mov ss, ax
@@ -419,26 +419,16 @@ protect_mode_entrance:
         mov esi,str_pt;
         mov edi,80
         call print_string
-        xchg bx,bx
+         
 
-        mov ebx , 0x100001
-        mov [ebx],eax        
-        mov [0x100000],ebx
-        
-
-
-
-        call setup_page
+        ; call setup_page
 
         mov ecx,4
         mov bl,200
         mov edi,0x10000
         call read_disk
-        xchg bx,bx
-
-        mov ebx , 0x100008
-        mov [ebx],eax        
-        mov [0x100000],ebx
+         
+  
         
         mov eax,0x20220205  
         mov ebx,ards_count

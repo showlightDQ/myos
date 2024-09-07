@@ -63,7 +63,7 @@ interrupt_exit:
     ; 对应 error code 或 push magic
     add esp, 8
 
-    ; xchg bx,bx
+    ;  
 
     iret
 ; 执行宏，生成  interrupt_handler_0x__:

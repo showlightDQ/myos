@@ -1,7 +1,7 @@
 org 0x7c00
 mov ax,3
 int 0x10  ;初始化屏幕
-; xchg bx,bx
+;  
 
 mov ax , 0
 mov ds,ax
@@ -17,7 +17,7 @@ call read_disk
 
 
 
-; xchg bx,bx
+;  
 mov al ,[0x1000]
 cmp al ,0x55
 jnz .error

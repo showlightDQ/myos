@@ -1,17 +1,17 @@
 org 0x7c00
-; xchg bx,bx
+;  
 
 mov ax,0x3
 int 0x10
 
-; xchg bx,bx
+;  
 mov ax,0x7c00
 ;mov ss,ax
 mov sp,0x7c00
 
     mov ax,2*80
 ; call setCursor
-; xchg bx,bx
+;  
 
 ;     mov ax,11
 ; call getCursor
@@ -21,12 +21,12 @@ mov sp,0x7c00
 
 call open_Int8
   
-; xchg bx,bx
+;  
     mov bl,10
     mov ecx,1
     mov edi,0x1000
 call read_disk
-; xchg bx,bx
+;  
 
     mov bl,2
     mov ecx,4
@@ -217,7 +217,7 @@ open_Int8:
     ret
     ;中断例程
     IR:
-    ; xchg bx,bx 
+    ;   
     push ax
     push bx
 

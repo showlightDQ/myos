@@ -65,7 +65,7 @@ void gdt_init()
     // gdt_ptr.base = (u32)&gdt;
     // gdt_ptr.limit = sizeof(gdt) - 1;
 
-    asm volatile("xchg %bx,%bx \n"); 
+    // asm volatile("xchg %bx,%bx \n"); 
 
     asm volatile ("sgdt gdt_ptr");
     memcpy(&gdt,(char* )gdt_ptr.base,gdt_ptr.limit+1);
