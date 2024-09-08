@@ -109,7 +109,8 @@ kernel.bin:  kernel.o  \
 		clock.o  \
 		time.o \
 		rtc.o \
-		memory.o
+		memory.o \
+		bitmap.o
 
 		    # 此处 文件先后 可能影响 dbg 的效果。
 	ld -m elf_i386 -Bstatic \
@@ -132,6 +133,7 @@ kernel.bin:  kernel.o  \
 	$(KERNEL)/$(word 17,$^)  \
 	$(KERNEL)/$(word 18,$^)  \
 	$(KERNEL)/$(word 19,$^)  \
+	$(LIB)/$(word 20,$^)  \
 	-o $(KERNEL)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
 	objcopy -O binary $(KERNEL)/$< $(BUILD)/$@  
@@ -152,10 +154,10 @@ clean:
 	find .. -type f -name "*.o" 	-exec rm -f {} \;
 
 bochs : master.img
-	bochs -f ../bochs/bochsConfiguration -q  
+	bochs -f ../bochs/bochsConfiguration -q  -unluck  
 
 bochsg : master.img
-	bochs -f ../bochs/bochsrc_gdb -q  
+	bochs -f ../bochs/bochsrc_gdb -q  -unluck
 
 
 QEMU  =qemu-system-i386 \

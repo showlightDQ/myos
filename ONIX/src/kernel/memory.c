@@ -43,7 +43,7 @@ static u32 KERNEL_PAGE_TABLE[] = {
 
 #define KERNEL_MAP_BITS 0x6000
 
-// bitmap_t kernel_map;
+bitmap_t kernel_map;
 
 typedef struct ards_t
 {
@@ -167,9 +167,9 @@ void memory_map_init()
     LOGK("Total pages %d free pages %d\n", total_pages, free_pages);
 
     // 初始化内核虚拟内存位图，需要 8 位对齐
-    // u32 length = (IDX(KERNEL_MEMORY_SIZE) - IDX(MEMORY_BASE)) / 8;
-    // bitmap_init(&kernel_map, (u8 *)KERNEL_MAP_BITS, length, IDX(MEMORY_BASE));
-    // bitmap_scan(&kernel_map, memory_map_pages);
+    u32 length = (IDX(KERNEL_MEMORY_SIZE) - IDX(MEMORY_BASE)) / 8;
+    bitmap_init(&kernel_map, (u8 *)KERNEL_MAP_BITS, length, IDX(MEMORY_BASE));
+    bitmap_scan(&kernel_map, memory_map_pages);
 }
 
 // 分配一页物理内存
@@ -345,53 +345,53 @@ void flush_tlb(u32 vaddr)
                  : "memory");
 }
 
-// 从位图中扫描 count 个连续的页
-// static u32 scan_page(bitmap_t *map, u32 count)
-// {
-//     assert(count > 0);
-//     int32 index = bitmap_scan(map, count);
+// 从位图中扫描 count 个连续的页,在们图中标记为1，返回count个页的起始业的 物理地址
+static u32 scan_page(bitmap_t *map, u32 count)
+{
+    assert(count > 0);
+    int32 index = bitmap_scan(map, count);
 
-//     if (index == EOF)
-//     {
-//         panic("Scan page fail!!!");
-//     }
+    if (index == EOF)
+    {
+        panic("Scan page fail!!!");
+    }
 
-//     u32 addr = PAGE(index);
-//     LOGK("Scan page 0x%p count %d\n", addr, count);
-//     return addr;
-// }
+    u32 addr = PAGE(index);
+    LOGK("Scan page 0x%p count %d\n", addr, count);
+    return addr;
+}
 
-// // 与 scan_page 相对，重置相应的页
-// static void reset_page(bitmap_t *map, u32 addr, u32 count)
-// {
-//     ASSERT_PAGE(addr);
-//     assert(count > 0);
-//     u32 index = IDX(addr);
+// 与 scan_page 相对，重置相应的页
+static void reset_page(bitmap_t *map, u32 addr, u32 count)
+{
+    ASSERT_PAGE(addr);
+    assert(count > 0);
+    u32 index = IDX(addr);
 
-//     for (size_t i = 0; i < count; i++)
-//     {
-//         assert(bitmap_test(map, index + i));
-//         bitmap_set(map, index + i, 0);
-//     }
-// }
+    for (size_t i = 0; i < count; i++)
+    {
+        assert(bitmap_test(map, index + i));
+        bitmap_set(map, index + i, 0);
+    }
+}
 
-// 分配 count 个连续的内核页
-// u32 alloc_kpage(u32 count)
-// {
-//     assert(count > 0);
-//     u32 vaddr = scan_page(&kernel_map, count);
-//     LOGK("ALLOC kernel pages 0x%p count %d\n", vaddr, count);
-//     return vaddr;
-// }
+// 分配 count 个连续的内核页，返回起始业的物理地址
+u32 alloc_kpage(u32 count)
+{
+    assert(count > 0);
+    u32 vaddr = scan_page(&kernel_map, count);
+    LOGK("ALLOC kernel pages，start at 0x%p count=%d\n", vaddr, count);
+    return vaddr;
+}
 
 // 释放 count 个连续的内核页
-// void free_kpage(u32 vaddr, u32 count)
-// {
-//     ASSERT_PAGE(vaddr);
-//     assert(count > 0);
-//     reset_page(&kernel_map, vaddr, count);
-//     LOGK("FREE  kernel pages 0x%p count %d\n", vaddr, count);
-// }
+void free_kpage(u32 vaddr, u32 count)
+{
+    ASSERT_PAGE(vaddr);
+    assert(count > 0);
+    reset_page(&kernel_map, vaddr, count);
+    LOGK("FREE  kernel pages 0x%p count %d\n", vaddr, count);
+}
 
 // 将 vaddr 映射物理内存
 void link_page(u32 vaddr)
@@ -728,30 +728,29 @@ static u32 copy_page(void *page)
 //     panic("page fault!!!");
 // }
 
-void page_test()
+void bitmaptest()
 {
-    char *p_addr[10];
-    for (int i = 0; i < 10; i++)
+    u8 buf[5];
+    bitmap_t bbmm;
+    bitmap_t *bm = &bbmm;
+    bitmap_init(bm, buf, 3, 0);
+    bitmap_set(bm, 8, 1);
+    for (size_t i = 0; i < bm->length * 8; i++)
     {
-        p_addr[i] = get_page();
-        printk("%p \n", p_addr[i]);
+        int result = bitmap_scan(bm, i);
+        if(result == EOF)
+        {
+            printk("fail i=%d map=%016b\n", i , (int)(buf[0]));
+        }
+        else{
+            printk("find in result=%d,i=%d\n map=%0b %0b %0b \n", result, i,(buf[2]),(buf[1]),(buf[0]));
+        }
     }
-    
-    for (int i = 0; i < 10; i++)
-    {
-         put_page(p_addr[i] );
-        printk("%p \n", p_addr[i]);
-    }
-    BMB;
-    BMB;
-    magic_breakpoint();
-    page_entry_t* p_pte1 = get_pte(0x100004,false);
-    printk("pte1= %p\n", p_pte1);
-    page_entry_t* p_pte2 = get_pte(0x004fffff,false);
-    printk("pte2= %p\n", p_pte2);
-    page_entry_t* p_pte3 = get_pte(0x1000000,true);
-    printk("pte2= %p\n", p_pte3);
-
-    int a = *(int *)(0xfffffffc);
-    printk("0xfffffffc= %p\n", *(int *)(0xfffffffc));
+    bitmap_init(bm, buf, 3, 70);
+    bitmap_set(bm, 16, 1);
+ 
+    u8 *tb = &buf;
+    printk("addr of buf=%x\n", &buf);
+    printk("addr of &buf=%x\n", &buf[0]);
+    printk("addr of buf[1]=%x\n", &buf[1]);
 }

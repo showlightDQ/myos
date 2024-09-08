@@ -6,8 +6,8 @@
 typedef struct bitmap_t
 {
     u8 *bits;   // 位图缓冲区
-    u32 length; // 位图缓冲区长度
-    u32 offset; // 位图开始的偏移
+    u32 length; // 位图缓冲区长度,有多少个字节
+    u32 offset; // 位图开始的偏移 。 不影响map的结构，只是说明map忽略的位数。
 } bitmap_t;
 
 // 初始化位图

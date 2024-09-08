@@ -183,9 +183,7 @@ void pic_init()
     
 }
 
-// 初始化中断描述符，和中断处理函数数组
-       
-       
+// 初始化中断描述符，和中断处理函数数组   
 void idt_init()
 {
     for (size_t i = 0; i < ENTRY_SIZE; i++)

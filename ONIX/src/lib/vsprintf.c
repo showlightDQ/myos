@@ -323,6 +323,20 @@ int vsprintf(char *buf, const char *fmt, va_list args)
                          field_width, precision, flags);
             break;
 
+            //如果格式转换符为b或B，输出二进制格式
+        case 'b':
+        case 'B':
+            // 此时若该参数没有设置宽度域，则默认宽度为 8，              X并且需要添零X
+            if (field_width == -1)
+            {
+                field_width = 8;
+                flags |= ZEROPAD;
+            }
+            str = number(str,
+                         (unsigned long)va_arg(args, void *),2,
+                         field_width, precision, flags);
+            break;
+
         // 若格式转换指示是 'x' 或 'X'
         // 则表示对应参数需要打印成十六进制数输出
         case 'x':
