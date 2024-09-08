@@ -59,6 +59,7 @@ static u32 free_pages = 0;  // 空闲内存页数
 
 #define used_pages (total_pages - free_pages) // 已用页数
 
+// 读取从loader.asm中传来的魔数并验证，读取在loader中用中断指令检测得来的内存公布数据，挑选最大的一块，用来初始化memery_base 和memery_base
 void memory_init(u32 magic, u32 addr)
 {
     u32 count = 0;
@@ -66,14 +67,14 @@ void memory_init(u32 magic, u32 addr)
     // 如果是 onix loader 进入的内核
     if (magic == ONIX_MAGIC)
     {
-        count = *(u32 *)addr;
-        ards_t *ptr = (ards_t *)(addr + 4);
+        count = *(u32 *)addr;  //读取loader中扫描的可用内存分区数据中的 条数
+        ards_t *ptr = (ards_t *)(addr + 4);  //跳过4字节后，读到的是每个条目的记录内容
 
         for (size_t i = 0; i < count; i++, ptr++)
         {
             LOGK("Memory base:0x%p size:0x%p type:%d\n",
                  (u32)ptr->base, (u32)ptr->size, (u32)ptr->type);
-            if (ptr->type == ZONE_VALID && ptr->size > memory_size)
+            if (ptr->type == ZONE_VALID && ptr->size > memory_size)  //挑选最大的一块来用
             {
                 memory_base = (u32)ptr->base;
                 memory_size = (u32)ptr->size;
@@ -123,16 +124,16 @@ void memory_init(u32 magic, u32 addr)
     LOGK("Memory size 0x%p\n", (u32)memory_size);
     LOGK("Memory size %dM %dK %dB\n", sizeM,sizeK,sizeB);
 
-    assert(memory_base == MEMORY_BASE); // 内存开始的位置为 1M
-    assert((memory_size & 0xfff) == 0); // 要求按页对齐
+    assert(memory_base == MEMORY_BASE); // 检测机器提供的内存起始位置与预测的是不是一致 从1M（0x100000）开始使用
+    assert((memory_size & 0xfff) == 0); // 可用内存的大小是否为整页？
 
-    total_pages = IDX(memory_size) + IDX(MEMORY_BASE);
+    total_pages = IDX(memory_size)/*可用的页*/ + IDX(MEMORY_BASE);//从0到基址占的页
     free_pages = IDX(memory_size);
 
     LOGK("Total pages %d\n", total_pages);
     LOGK("Free pages %d\n", free_pages);
 
-    if (memory_size < KERNEL_MEMORY_SIZE)
+    if (memory_size < KERNEL_MEMORY_SIZE) //检测是否小于内核最小内存大小16M
     {
         panic("System memory is %dM too small, at least %dM needed\n",
               memory_size / MEMORY_BASE, KERNEL_MEMORY_SIZE / MEMORY_BASE);
@@ -140,36 +141,38 @@ void memory_init(u32 magic, u32 addr)
 }
 
 static u32 start_page = 0;   // 可分配物理内存起始位置
-static u8 *memory_map;       // 物理内存数组
+static u8 *memory_map;       // 用于标记物理内存的位图
 static u32 memory_map_pages; // 物理内存数组占用的页数
 
 void memory_map_init()
 {
     // 初始化物理内存数组
-    memory_map = (u8 *)memory_base;
+    memory_map = (u8 *)memory_base;//用可用base开始存储位图   其实 应该把它放在1M以前的可用内存中
 
-    // 计算物理内存数组占用的页数
+    // 计算物理内存位图占用的页数
     memory_map_pages = div_round_up(total_pages, PAGE_SIZE);
     LOGK("Memory map page count %d\n", memory_map_pages);
 
     free_pages -= memory_map_pages;
 
-    // 0x100000起始的 8K 空间用来标记 页使用情况，设0表示标记为未使用
-    memset((void *)memory_map, 0, memory_map_pages * PAGE_SIZE);
+    // 0x100000起始的 8K 空间用来标记 页使用情况，设0表示标记为未使用    
+    memset((void *)memory_map, 0, memory_map_pages * PAGE_SIZE);//memory_map 是字节数组，每字节表示1页的使用情况，为1为已使用，清理8K字节空间，可标记32M的物理内存
 
-    // 前 1M 的内存位置 以及 物理内存数组已占用的页，已被占用
+    // 前 1M 的内存位置 以及 物理内存map数组已占用的2页，标记为已被占用
     start_page = IDX(MEMORY_BASE) + memory_map_pages;  //从0地址算起，MEMORY_BASE前面的页（1024）加页目录用掉的页，等于起始页（在整个内存从零开始的第start_page页）
     for (size_t i = 0; i < start_page; i++)
     {
         memory_map[i] = 1; // 0x100000后的每一个字节作为一个页的标志，把0到free_page前的页的标志设为1（已使用）
     }
 
+    LOGK("memory_map_pages=%d start address(memory_map)=%x\n", memory_map_pages, memory_map);
     LOGK("Total pages %d free pages %d\n", total_pages, free_pages);
+    LOGK("start page=%d address=%x\n", start_page,start_page<<12);
 
-    // 初始化内核虚拟内存位图，需要 8 位对齐
-    u32 length = (IDX(KERNEL_MEMORY_SIZE) - IDX(MEMORY_BASE)) / 8;
-    bitmap_init(&kernel_map, (u8 *)KERNEL_MAP_BITS, length, IDX(MEMORY_BASE));
-    bitmap_scan(&kernel_map, memory_map_pages);
+    // 初始化内核虚拟内存位图，内核内存位图存于0x6000 以位来标记， 0~16M 用来存储kernel map
+    u32 length = (IDX(KERNEL_MEMORY_SIZE) - IDX(MEMORY_BASE)) / 8; //计算内核需要的内存（16M）减去Memory_base以前的1M（算是给内核用了），1位标记1页（/8），需要多少字节来标记。 BUG这里没有roundup可能会不够
+    bitmap_init(&kernel_map, (u8 *)KERNEL_MAP_BITS, length, IDX(MEMORY_BASE)); //把map数据设置存储在0x6000，长度是内核需要的页标记空间，设置偏移量是1M以前的空间256位（不占标记字节位）
+    bitmap_scan(&kernel_map, memory_map_pages); //为memory_map安排两页
 }
 
 // 分配一页物理内存
@@ -305,6 +308,9 @@ static page_entry_t *get_pde()
 {
     return (page_entry_t *)(0xfffff000); //该地址经过转换后就是 0x00001ffc
 }
+
+
+
 // pde是page directory entry(0x1000)只是一个入口地址，
 // pdt（page directory table）是pde为始地址的表，把它当作数组则可找到到应的表项，其傎在1000~1fff之间&0xfffffffc
 //pte (page table entry)  页表入口，值存放在PDT（PDE[i]）的index里面，=index<<12
@@ -349,7 +355,7 @@ void flush_tlb(u32 vaddr)
 static u32 scan_page(bitmap_t *map, u32 count)
 {
     assert(count > 0);
-    int32 index = bitmap_scan(map, count);
+    int32 index = bitmap_scan(map, count); //vf寻找并返回连续的count页的起始页位置，返回值是加上offset（1M的页值256）的数
 
     if (index == EOF)
     {
@@ -380,7 +386,7 @@ u32 alloc_kpage(u32 count)
 {
     assert(count > 0);
     u32 vaddr = scan_page(&kernel_map, count);
-    LOGK("ALLOC kernel pages，start at 0x%p count=%d\n", vaddr, count);
+    LOGK("ALLOC kernel pages,start at 0x%p count=%d\n", vaddr, count);
     return vaddr;
 }
 
@@ -730,27 +736,17 @@ static u32 copy_page(void *page)
 
 void bitmaptest()
 {
-    u8 buf[5];
-    bitmap_t bbmm;
-    bitmap_t *bm = &bbmm;
-    bitmap_init(bm, buf, 3, 0);
-    bitmap_set(bm, 8, 1);
-    for (size_t i = 0; i < bm->length * 8; i++)
+    int * show;
+    show = 0x200000;
+    int total = 0x6ff;
+    for (size_t i = 0; i < total; i++)
     {
-        int result = bitmap_scan(bm, i);
-        if(result == EOF)
-        {
-            printk("fail i=%d map=%016b\n", i , (int)(buf[0]));
-        }
-        else{
-            printk("find in result=%d,i=%d\n map=%0b %0b %0b \n", result, i,(buf[2]),(buf[1]),(buf[0]));
-        }
+        show[i] = alloc_kpage(1);
+        printk("%#x\n", show[i]);
     }
-    bitmap_init(bm, buf, 3, 70);
-    bitmap_set(bm, 16, 1);
- 
-    u8 *tb = &buf;
-    printk("addr of buf=%x\n", &buf);
-    printk("addr of &buf=%x\n", &buf[0]);
-    printk("addr of buf[1]=%x\n", &buf[1]);
+    for (size_t i = 0; i < total; i++)
+    {
+        free_kpage(show[i], 1);
+    }
+    
 }

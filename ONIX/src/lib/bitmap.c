@@ -102,7 +102,7 @@ int bitmap_scan(bitmap_t *map, u32 count)
     // 如果没找到，则返回 EOF(END OF FILE)
     if (start == EOF)
         return EOF;
-
+    printk("bits left=%x\n", bits_left);
     // 否则将找到的位，全部置为 1
     bits_left = count;
     next_bit = start;
