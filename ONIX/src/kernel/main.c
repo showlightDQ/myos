@@ -32,17 +32,16 @@ void kernel_init()
 {
      
      asm volatile("xchgw %bx, %bx");
-     interrupt_init();
      memory_map_init();
      mapping_init();
+     interrupt_init();
+     clock_init();
+     task_init();
 
-     // task_init();
-     // clock_init();
      // set_alarm(2);
      // time_init();
      // rtc_init();
-     bitmaptest();
-     asm volatile("sti\n");
+     set_interrupt_state(true);
 
      hang();
 

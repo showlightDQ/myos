@@ -54,34 +54,34 @@ void clock_handler(int vector)
     static int  i = 1,j,k;
     assert(vector == 0x20); 
     send_eoi(vector); // 发送中断处理结束
-
+                     
     jiffies++;
-    if(jiffies%50 == 0)
-    {
-        start_beep();
-    j = OSCILLATOR/i ;
-    i = i + i/100 +1;
-    if(i>23000) i = 20;    
-    outb(PIT_CTRL_REG, 0b10110110);
-    outb(PIT_CHAN2_REG, (u8)j);
-    outb(PIT_CHAN2_REG, (u8)(j >> 8));
-        DEBUGK("beep %d\n",i);
-    }   
-        // DEBUGK("clock jiffies vector=%p,%d\n",vector, jiffies);
-    // stop_beep();
+    // if(jiffies%50 == 0)
+    // {
+    //     start_beep();
+    // j = OSCILLATOR/i ;
+    // i = i + i/100 +1;
+    // if(i>23000) i = 20;    
+    // outb(PIT_CTRL_REG, 0b10110110);
+    // outb(PIT_CHAN2_REG, (u8)j);
+    // outb(PIT_CHAN2_REG, (u8)(j >> 8));
+    //     DEBUGK("beep %d\n",i);
+    // }   
+    //     DEBUGK("clock jiffies vector=%p,%d\n",vector, jiffies);
+    stop_beep();
     
 
     // timer_wakeup();
 
-    // task_t *task = running_task();
-    // assert(task->magic == ONIX_MAGIC);
+    task_t *task = running_task();
+    assert(task->magic == ONIX_MAGIC);
 
-    // task->jiffies = jiffies;
-    // task->ticks--;
-    // if (!task->ticks)
-    // {
-    //     schedule();
-    // }
+    task->jiffies = jiffies;
+    task->ticks--;
+    if (!task->ticks)
+    {
+        schedule();
+    }
 }
 
 // extern time_t startup_time;

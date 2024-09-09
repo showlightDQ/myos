@@ -1,11 +1,11 @@
 #include <onix/task.h>
 #include <onix/printk.h>
 #include <onix/debug.h>
-// #include <onix/memory.h>
+#include <onix/memory.h>
 #include <onix/assert.h>
-// #include <onix/interrupt.h>
+#include <onix/interrupt.h>
 #include <onix/string.h>
-// #include <onix/bitmap.h>
+#include <onix/bitmap.h>
 // #include <onix/syscall.h>
 #include <onix/list.h>
 #include <onix/global.h>
@@ -16,11 +16,11 @@
 // #include <onix/device.h>
 // #include <onix/tty.h>
 
-// #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
+#define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
 // extern u32 volatile jiffies;
 // extern u32 jiffy;
-// extern bitmap_t kernel_map;
+extern bitmap_t kernel_map;
 extern tss_t tss;
 // extern file_t file_table[];
 
@@ -28,55 +28,55 @@ extern tss_t tss;
 
 extern void task_switch(task_t *next);
 
-// task_t *task_table[TASK_NR]; // 任务表
+task_t *task_table[TASK_NR]; // 任务表
 // static list_t block_list;    // 任务默认阻塞链表
 static list_t sleep_list;    // 任务睡眠链表
 
 // static task_t *idle_task;
 
 // // 从 task_table 里获得一个空闲的任务
-// static task_t *get_free_task()
-// {
-//     for (size_t i = 0; i < TASK_NR; i++)
-//     {
-//         if (task_table[i] == NULL)
-//         {
-//             task_t *task = (task_t *)alloc_kpage(1);
-//             memset(task, 0, PAGE_SIZE);
-//             task->pid = i;
-//             task_table[i] = task;
-//             return task;
-//         }
-//     }
-//     panic("No more tasks");
-// }
+static task_t *get_free_task()
+{
+    for (size_t i = 0; i < TASK_NR; i++)
+    {
+        if (task_table[i] == NULL)
+        {
+            task_t *task = (task_t *)alloc_kpage(1);
+            memset(task, 0, PAGE_SIZE);
+            task->pid = i;
+            task_table[i] = task;
+            return task;
+        }
+    }
+    panic("No more tasks");
+}
 
-// // 获得 pid 对应的 task
-// task_t *get_task(pid_t pid)
-// {
-//     for (size_t i = 0; i < TASK_NR; i++)
-//     {
-//         if (!task_table[i])
-//             continue;
-//         if (task_table[i]->pid == pid)
-//             return task_table[i];
-//     }
-//     return NULL;
-// }
+// 获得 pid 对应的 task
+task_t *get_task(pid_t pid)
+{
+    for (size_t i = 0; i < TASK_NR; i++)
+    {
+        if (!task_table[i])
+            continue;
+        if (task_table[i]->pid == pid)
+            return task_table[i];
+    }
+    return NULL;
+}
 
-// // 获取进程 id
-// pid_t sys_getpid()
-// {
-//     task_t *task = running_task();
-//     return task->pid;
-// }
+// 获取进程 id
+pid_t sys_getpid()
+{
+    task_t *task = running_task();
+    return task->pid;
+}
 
-// // 获取父进程 id
-// pid_t sys_getppid()
-// {
-//     task_t *task = running_task();
-//     return task->ppid;
-// }
+// 获取父进程 id
+pid_t sys_getppid()
+{
+    task_t *task = running_task();
+    return task->ppid;
+}
 
 // fd_t task_get_fd(task_t *task)
 // {
@@ -99,34 +99,34 @@ static list_t sleep_list;    // 任务睡眠链表
 //     task->files[fd] = NULL;
 // }
 
-// // 从任务数组中查找某种状态的任务，自己除外
-// static task_t *task_search(task_state_t state)
-// {
-//     assert(!get_interrupt_state());
-//     task_t *task = NULL;
-//     task_t *current = running_task();
+// 从任务数组中查找某种状态的任务，自己除外
+static task_t *task_search(task_state_t state)
+{
+    assert(!get_interrupt_state());
+    task_t *task = NULL;
+    task_t *current = running_task();
 
-//     for (size_t i = 0; i < TASK_NR; i++)
-//     {
-//         task_t *ptr = task_table[i];
-//         if (ptr == NULL)
-//             continue;
+    for (size_t i = 0; i < TASK_NR; i++)
+    {
+        task_t *ptr = task_table[i];
+        if (ptr == NULL)
+            continue;
 
-//         if (ptr->state != state)
-//             continue;
-//         if (current == ptr)
-//             continue;
-//         if (task == NULL || task->ticks < ptr->ticks || ptr->jiffies < task->jiffies)
-//             task = ptr;
-//     }
+        if (ptr->state != state)
+            continue;
+        if (current == ptr)
+            continue;
+        if (task == NULL || task->ticks < ptr->ticks || ptr->jiffies < task->jiffies)
+            task = ptr;
+    }
 
-//     if (task == NULL && state == TASK_READY)
-//     {
-//         task = idle_task;
-//     }
+    if (task == NULL && state == TASK_READY)
+    {
+        // task = idle_task;
+    }
 
-//     return task;
-// }
+    return task;
+}
 
 // void task_yield()
 // {
@@ -193,21 +193,21 @@ static list_t sleep_list;    // 任务睡眠链表
 // }
 
 // // // 激活任务
-// void task_activate(task_t *task)
-// {
-//     assert(task->magic == ONIX_MAGIC);
+void task_activate(task_t *task)
+{
+    assert(task->magic == ONIX_MAGIC);
 
-//     if (task->pde != get_cr3())
-//     {
-//         set_cr3(task->pde);
-//         // BMB;
-//     }
+    if (task->pde != get_cr3())
+    {
+        set_cr3(task->pde);
+        // BMB;
+    }
 
-//     if (task->uid != KERNEL_USER)
-//     {
-//         tss.esp0 = (u32)task + PAGE_SIZE;
-//     }
-// }
+    if (task->uid != KERNEL_USER)
+    {
+        tss.esp0 = (u32)task + PAGE_SIZE;
+    }
+}
 #define PAGE_SIZE 0x1000
 
 task_t *a = (task_t*) 0x1000;
@@ -225,69 +225,65 @@ void schedule()
 //     assert(!get_interrupt_state()); // 不可中断
 
     task_t *current = running_task();
-    task_t *next = current == a ? b :a;
-    // task_search(TASK_READY);
+    task_t *next = task_search(TASK_READY);
 
-//     assert(next != NULL);
-//     assert(next->magic == ONIX_MAGIC);
+    assert(next != NULL);
+    assert(next->magic == ONIX_MAGIC);
 
-//     if (current->state == TASK_RUNNING)
-//     {
-//         current->state = TASK_READY;
-//     }
+    if (current->state == TASK_RUNNING)
+    {
+        current->state = TASK_READY;
+    }
 
 //     if (!current->ticks)
 //     {
 //         current->ticks = current->priority;
 //     }
 
-//     next->state = TASK_RUNNING;
-//     if (next == current)
-//         return;
+    next->state = TASK_RUNNING;
+    if (next == current)
+        return;
 
-//     task_activate(next);
+    // task_activate(next);
     task_switch(next);
 }
 
-u32 _ofp thread_a()
+u32  thread_a()
 {
-    asm volatile("sti \n");
+    set_interrupt_state(true);
     while (true)
     {
         printk("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"); 
     }
 }
-u32 _ofp thread_b()
+
+u32 thread_b()
 {
-    asm volatile("sti \n");
+    set_interrupt_state(true);
     while (true)
     {
-        printk("_______________________________________________________"); 
+        printk("----------------------------------------------------------------"); 
+    }
+}
+u32 thread_c()
+{
+    set_interrupt_state(true);
+    while (true)
+    {
+        printk("cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"); 
     }
 }
 
-static void task_create(task_t *task, target_t routine)
-{
-    u32 stack = (u32)task + PAGE_SIZE;
-
-    stack -= sizeof(task_frame_t);
-    task_frame_t *frame = (task_frame_t *)stack;
-    frame->edi = 0x1;
-    frame->esi = 2;
-    frame->ebx = 3;
-    frame->ebp = 4;
-    frame->eip = (void*)routine;
-
-    task->stack = (u32 *)stack;   //栈的第一个数据存放 esp 的值，
-}
 void task_init()
 {
-    
-    task_create(a, thread_a);
-    task_create(b, thread_b);
-    schedule();
+    task_setup();
+    task_create(a, "task_a", 5, KERNEL_USER);
+    task_create(b, "task_b", 5, KERNEL_USER);
+    task_create(c, "task_c", 5, KERNEL_USER);
+     
+    // schedule();
 //     list_init(&block_list);
-//     list_init(&sleep_list);
+//     list_init(&sleep_list); 
 
 //     task_setup();
 
@@ -296,33 +292,49 @@ void task_init()
 //     task_create(test_thread, "test", 5, NORMAL_USER);
 }
 
-// static task_t *task_create(target_t target, const char *name, u32 priority, u32 uid)
-// {
-//     task_t *task = get_free_task();
 
+// static void task_create(task_t *task, target_t routine)
+// {
 //     u32 stack = (u32)task + PAGE_SIZE;
 
 //     stack -= sizeof(task_frame_t);
 //     task_frame_t *frame = (task_frame_t *)stack;
-//     frame->ebx = 0x11111111;
-//     frame->esi = 0x22222222;
-//     frame->edi = 0x33333333;
-//     frame->ebp = 0x44444444;
-//     frame->eip = (void *)target;
+//     frame->edi = 0x1;
+//     frame->esi = 2;
+//     frame->ebx = 3;
+//     frame->ebp = 4;
+//     frame->eip = (void*)routine;
 
-//     strcpy((char *)task->name, name);
+//     task->stack = (u32 *)stack;   //栈的第一个数据存放 esp 的值，
+// }
 
-//     task->stack = (u32 *)stack;
-//     task->priority = priority;
-//     task->ticks = task->priority;
-//     task->jiffies = 0;
-//     task->state = TASK_READY;
-//     task->uid = uid;
-//     task->gid = 0; // TODO: group
-//     task->pgid = 0;
-//     task->sid = 0;
-//     task->vmap = &kernel_map;
-//     task->pde = KERNEL_PAGE_DIR; // page directory entry
+static task_t *task_create(target_t target, const char *name, u32 priority, u32 uid)
+{
+    task_t *task = get_free_task();
+
+    u32 stack = (u32)task + PAGE_SIZE;
+
+    stack -= sizeof(task_frame_t);
+    task_frame_t *frame = (task_frame_t *)stack;
+    frame->ebx = 0x11111111;
+    frame->esi = 0x22222222;
+    frame->edi = 0x33333333;
+    frame->ebp = 0x44444444;
+    frame->eip = (void *)target;
+
+    strcpy((char *)task->name, name);
+
+    task->stack = (u32 *)stack;
+    task->priority = priority;
+    task->ticks = task->priority;
+    task->jiffies = 0;
+    task->state = TASK_READY;
+    task->uid = uid;
+    task->gid = 0; // TODO: group
+    task->pgid = 0;
+    task->sid = 0;
+    task->vmap = &kernel_map;
+    task->pde = KERNEL_PAGE_DIR; // page directory entry
 //     task->brk = USER_EXEC_ADDR;
 //     task->text = USER_EXEC_ADDR;
 //     task->data = USER_EXEC_ADDR;
@@ -355,10 +367,10 @@ void task_init()
 //         action->restorer = NULL;
 //     }
 
-//     task->magic = ONIX_MAGIC;
+    task->magic = ONIX_MAGIC;
 
-//     return task;
-// }
+    return task;
+}
 
 // extern int sys_execve();
 // extern int init_user_thread();
@@ -646,17 +658,17 @@ void task_init()
 //     return ret;
 // }
 
-// static void task_setup()
-// {
-//     task_t *task = running_task();
-//     task->magic = ONIX_MAGIC;
-//     task->ticks = 1;
+static void task_setup()
+{
+    task_t *task = running_task();
+    task->magic = ONIX_MAGIC;
+    task->ticks = 1;
 
-//     memset(task_table, 0, sizeof(task_table));
-// }
+    memset(task_table, 0, sizeof(task_table));
+}
 
-// extern void idle_thread();
-// extern void init_thread();
-// extern void test_thread();
+extern void idle_thread();
+extern void init_thread();
+extern void test_thread();
 
 
