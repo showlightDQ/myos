@@ -337,25 +337,6 @@ static task_t *task_create(target_t target, const char *name, u32 priority, u32 
 //     }
 
 
-void task_init()
-{
-    task_setup();
-    task_create(thread_a, "task_a", 5, KERNEL_USER);
-    task_create(thread_a, "task_b", 5, KERNEL_USER);
-    task_create(thread_c, "task_b", 5, KERNEL_USER);
-    // task_create(c, "task_c", 5, KERNEL_USER);
-     
-    // schedule();
-//     list_init(&block_list);
-//     list_init(&sleep_list); 
-
-//     task_setup();
-
-    // idle_task = task_create(idle_thread, "idle", 1, KERNEL_USER);
-    idle_task = task_create(thread_c, "idle", 1, KERNEL_USER);
-//     task_create(init_thread, "init", 5, NORMAL_USER);
-//     task_create(test_thread, "test", 5, NORMAL_USER);
-}
 
 // extern int sys_execve();
 // extern int init_user_thread();
@@ -643,7 +624,7 @@ void task_init()
 //     return ret;
 // }
 
-void task_setup()
+void static task_setup()
 {
     task_t *task = running_task();
     task->magic = ONIX_MAGIC;
@@ -657,3 +638,22 @@ extern void init_thread();
 extern void test_thread();
 
 
+void  task_init()
+{
+    task_setup();
+    task_create(thread_a, "task_a", 5, KERNEL_USER);
+    task_create(thread_a, "task_b", 5, KERNEL_USER);
+    task_create(thread_c, "task_b", 5, KERNEL_USER);
+    // task_create(c, "task_c", 5, KERNEL_USER);
+     
+    // schedule();
+//     list_init(&block_list);
+//     list_init(&sleep_list); 
+
+//     task_setup();
+
+    // idle_task = task_create(idle_thread, "idle", 1, KERNEL_USER);
+    idle_task = task_create(thread_c, "idle", 1, KERNEL_USER);
+//     task_create(init_thread, "init", 5, NORMAL_USER);
+//     task_create(test_thread, "test", 5, NORMAL_USER);
+}

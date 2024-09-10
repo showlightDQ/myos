@@ -14,7 +14,7 @@ _start:
     call memory_init
     ;  
     call kernel_init
-    mov dword [0x400001],eax
+    
     
      
 
