@@ -34,7 +34,7 @@ void kernel_init()
      asm volatile("xchgw %bx, %bx");
      memory_map_init();
      mapping_init();
-     interrupt_init();
+     interrupt_init();  
      clock_init();
      task_init();
 

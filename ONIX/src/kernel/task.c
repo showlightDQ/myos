@@ -32,16 +32,16 @@ task_t *task_table[TASK_NR]; // 任务表
 // static list_t block_list;    // 任务默认阻塞链表
 static list_t sleep_list;    // 任务睡眠链表
 
-// static task_t *idle_task;
+static task_t *idle_task;
 
 // // 从 task_table 里获得一个空闲的任务
 static task_t *get_free_task()
 {
     for (size_t i = 0; i < TASK_NR; i++)
     {
-        if (task_table[i] == NULL)
+        if (task_table[i] == NULL)  // 初始状态下task_table没有初始值==NULL
         {
-            task_t *task = (task_t *)alloc_kpage(1);
+            task_t *task = (task_t *)alloc_kpage(1);  // 分配一个空页，得到整4K位的地址
             memset(task, 0, PAGE_SIZE);
             task->pid = i;
             task_table[i] = task;
@@ -109,20 +109,20 @@ static task_t *task_search(task_state_t state)
     for (size_t i = 0; i < TASK_NR; i++)
     {
         task_t *ptr = task_table[i];
-        if (ptr == NULL)
+        if (ptr == NULL)  // 不存在的任务，跳过
             continue;
 
-        if (ptr->state != state)
+        if (ptr->state != state)  //不是要找的状态，跳过
             continue;
-        if (current == ptr)
+        if (current == ptr)  // 当前正在运行的线程，跳过
             continue;
-        if (task == NULL || task->ticks < ptr->ticks || ptr->jiffies < task->jiffies)
+        if (task == NULL || task->ticks < ptr->ticks || ptr->jiffies < task->jiffies) //适合的任务中，找到 ticks 最大的、调度时间更早的进程 ，交给 task
             task = ptr;
     }
 
-    if (task == NULL && state == TASK_READY)
+    if (task == NULL && state == TASK_READY)  //如果要找的是 就绪 任务，但找不到，返回一个 闲逛 的任务
     {
-        // task = idle_task;
+        task = idle_task;
     }
 
     return task;
@@ -210,10 +210,7 @@ void task_activate(task_t *task)
 }
 #define PAGE_SIZE 0x1000
 
-task_t *a = (task_t*) 0x1000;
-task_t *b = (task_t*) 0x2000;
-
-task_t *running_task()
+task_t *running_task()   // 读取栈寄存器，并返回。 作为任务的标识
 {
     asm volatile(
         "movl %esp, %eax\n"
@@ -224,21 +221,21 @@ void schedule()
 {
 //     assert(!get_interrupt_state()); // 不可中断
 
-    task_t *current = running_task();
-    task_t *next = task_search(TASK_READY);
+    task_t *current = running_task();  
+    task_t *next = task_search(TASK_READY);  //从 task_table[]里挑选一个 TASK_READY 的任务，最远的，且时间片最多的
 
     assert(next != NULL);
     assert(next->magic == ONIX_MAGIC);
 
-    if (current->state == TASK_RUNNING)
+    if (current->state == TASK_RUNNING)  //这个有必要吗？？
     {
         current->state = TASK_READY;
     }
 
-//     if (!current->ticks)
-//     {
-//         current->ticks = current->priority;
-//     }
+    if (!current->ticks)
+    {
+        current->ticks = current->priority;
+    }
 
     next->state = TASK_RUNNING;
     if (next == current)
@@ -248,81 +245,49 @@ void schedule()
     task_switch(next);
 }
 
-u32  thread_a()
+void  thread_a()
 {
     set_interrupt_state(true);
     while (true)
     {
-        printk("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"); 
+        printk("+++ "); 
     }
 }
 
-u32 thread_b()
+void thread_b()
 {
     set_interrupt_state(true);
     while (true)
     {
-        printk("----------------------------------------------------------------"); 
+        printk("--- "); 
     }
 }
-u32 thread_c()
+void thread_c()
 {
     set_interrupt_state(true);
     while (true)
     {
-        printk("cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"); 
+        printk("ccc "); 
     }
 }
 
-void task_init()
-{
-    task_setup();
-    task_create(a, "task_a", 5, KERNEL_USER);
-    task_create(b, "task_b", 5, KERNEL_USER);
-    task_create(c, "task_c", 5, KERNEL_USER);
-     
-    // schedule();
-//     list_init(&block_list);
-//     list_init(&sleep_list); 
 
-//     task_setup();
-
-//     idle_task = task_create(idle_thread, "idle", 1, KERNEL_USER);
-//     task_create(init_thread, "init", 5, NORMAL_USER);
-//     task_create(test_thread, "test", 5, NORMAL_USER);
-}
-
-
-// static void task_create(task_t *task, target_t routine)
-// {
-//     u32 stack = (u32)task + PAGE_SIZE;
-
-//     stack -= sizeof(task_frame_t);
-//     task_frame_t *frame = (task_frame_t *)stack;
-//     frame->edi = 0x1;
-//     frame->esi = 2;
-//     frame->ebx = 3;
-//     frame->ebp = 4;
-//     frame->eip = (void*)routine;
-
-//     task->stack = (u32 *)stack;   //栈的第一个数据存放 esp 的值，
-// }
 
 static task_t *task_create(target_t target, const char *name, u32 priority, u32 uid)
 {
     task_t *task = get_free_task();
 
-    u32 stack = (u32)task + PAGE_SIZE;
+    u32 stack = (u32)task + PAGE_SIZE;  // 把页顶（task地址+4096字节）设为栈指针
 
-    stack -= sizeof(task_frame_t);
-    task_frame_t *frame = (task_frame_t *)stack;
-    frame->ebx = 0x11111111;
+    stack -= sizeof(task_frame_t); //留出进程切换寄存器的空间，stack的地址作为 task_frame_t 的起始地址
+    task_frame_t *frame = (task_frame_t *)stack;  //task_frame_t 的起始地址
+    frame->ebx = 0x11111111;  //由低到高地址 存储 寄存器值
     frame->esi = 0x22222222;
     frame->edi = 0x33333333;
     frame->ebp = 0x44444444;
-    frame->eip = (void *)target;
-
-    strcpy((char *)task->name, name);
+    frame->eip = (void *)target;  // 最高地址的 寄存器值
+    // 进程切换时 esp 存在task的0地址处，切换时已设置
+    strcpy((char *)task->name, name);  // 这里应换为 strncpy 确保不溢出
 
     task->stack = (u32 *)stack;
     task->priority = priority;
@@ -335,6 +300,10 @@ static task_t *task_create(target_t target, const char *name, u32 priority, u32 
     task->sid = 0;
     task->vmap = &kernel_map;
     task->pde = KERNEL_PAGE_DIR; // page directory entry
+    task->magic = ONIX_MAGIC;
+
+    return task;
+}
 //     task->brk = USER_EXEC_ADDR;
 //     task->text = USER_EXEC_ADDR;
 //     task->data = USER_EXEC_ADDR;
@@ -367,9 +336,25 @@ static task_t *task_create(target_t target, const char *name, u32 priority, u32 
 //         action->restorer = NULL;
 //     }
 
-    task->magic = ONIX_MAGIC;
 
-    return task;
+void task_init()
+{
+    task_setup();
+    task_create(thread_a, "task_a", 5, KERNEL_USER);
+    task_create(thread_a, "task_b", 5, KERNEL_USER);
+    task_create(thread_c, "task_b", 5, KERNEL_USER);
+    // task_create(c, "task_c", 5, KERNEL_USER);
+     
+    // schedule();
+//     list_init(&block_list);
+//     list_init(&sleep_list); 
+
+//     task_setup();
+
+    // idle_task = task_create(idle_thread, "idle", 1, KERNEL_USER);
+    idle_task = task_create(thread_c, "idle", 1, KERNEL_USER);
+//     task_create(init_thread, "init", 5, NORMAL_USER);
+//     task_create(test_thread, "test", 5, NORMAL_USER);
 }
 
 // extern int sys_execve();
@@ -658,13 +643,13 @@ static task_t *task_create(target_t target, const char *name, u32 priority, u32 
 //     return ret;
 // }
 
-static void task_setup()
+void task_setup()
 {
     task_t *task = running_task();
     task->magic = ONIX_MAGIC;
     task->ticks = 1;
 
-    memset(task_table, 0, sizeof(task_table));
+    memset(task_table, 0, sizeof(task_table)); //task_table是任务指针数组，它的项用来指向task_t的结构体。
 }
 
 extern void idle_thread();

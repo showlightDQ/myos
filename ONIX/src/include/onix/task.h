@@ -2,8 +2,6 @@
 #define ONIX_TASK_H
 
 #include <onix/types.h>
-
-typedef u32 target_t();
 void task_init();
 // #include <onix/list.h>
 // #include <onix/signal.h>
@@ -30,7 +28,7 @@ typedef enum task_state_t
 
 typedef struct task_t
 {
-    u32 *stack;                         // 内核栈
+    u32 *stack;                         // 内核栈  值为本页的起始地址，
     // list_node_t node;                   // 任务阻塞节点
     task_state_t state;                 // 任务状态
     u32 priority;                       // 任务优先级
@@ -64,7 +62,7 @@ typedef struct task_t
     u32 magic;                          // 内核魔数，用于检测栈溢出
 } task_t;
 
-typedef struct task_fram_t  
+typedef struct task_frame_t  // 进程切换时栈内的预设寄存器数据，新进程时存在页的最高地址处
 {
     //ABI 中规定，进程中这四个寄存器的值不能动
     u32 edi;
@@ -116,7 +114,7 @@ pid_t task_fork();
 pid_t task_waitpid(pid_t pid, int32 *status);
 
 void task_yield();
-int task_block(task_t *task, list_t *blist, task_state_t state, int timeout_ms);
+// int task_block(task_t *task, list_t *blist, task_state_t state, int timeout_ms);
 void task_unblock(task_t *task, int reason);
 
 void task_sleep(u32 ms);

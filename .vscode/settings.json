@@ -40,7 +40,8 @@
         "system_error": "c",
         "typeinfo": "c",
         "valarray": "c",
-        "*.inc": "c"
+        "*.inc": "c",
+        "task.h": "c"
     },
     "C_Cpp.dimInactiveRegions": false
 }

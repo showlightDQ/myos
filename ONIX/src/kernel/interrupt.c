@@ -140,9 +140,7 @@ void exception_handler(
     u32 edi, u32 esi, u32 ebp, u32 esp,
     u32 ebx, u32 edx, u32 ecx, u32 eax,
     u32 gs, u32 fs, u32 es, u32 ds,
-    u32 vector0, u32 error, u32 eip, u32 cs, u32 eflags)             
-
-
+    u32 vector0, u32 error, u32 eip, u32 cs, u32 eflags          )   
 {
     char *message = NULL;
     if (vector < 22)
@@ -179,8 +177,7 @@ void pic_init()
     outb(PIC_S_DATA, 0b00000001); // ICW4: 8086模式, 正常EOI
 
     outb(PIC_M_DATA, 0b11111100); // 关闭所有中断
-    outb(PIC_S_DATA, 0b11111111); // 关闭所有中断
-    
+    outb(PIC_S_DATA, 0b11111111); // 关闭所有中断    
 }
 
 // 初始化中断描述符，和中断处理函数数组   
@@ -231,7 +228,7 @@ void idt_init()
     asm volatile("lidt idt_ptr\n");
 }
 
-void interrupt_init()
+void interrupt_init()  //设置中断环境
 {
     pic_init();
     idt_init();

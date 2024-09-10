@@ -734,19 +734,3 @@ static u32 copy_page(void *page)
 //     panic("page fault!!!");
 // }
 
-void bitmaptest()
-{
-    int * show;
-    show = 0x200000;
-    int total = 0x6ff;
-    for (size_t i = 0; i < total; i++)
-    {
-        show[i] = alloc_kpage(1);
-        printk("%#x\n", show[i]);
-    }
-    for (size_t i = 0; i < total; i++)
-    {
-        free_kpage(show[i], 1);
-    }
-    
-}
