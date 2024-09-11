@@ -232,9 +232,14 @@ void schedule()
         current->state = TASK_READY;
     }
 
-    if (!current->ticks)
+    if (!current->ticks)  // 应该没有必要吧？
     {
         current->ticks = current->priority;
+    }
+    else
+    {//应该不可能执行到这吧？
+        BMB;
+        DEBUGK("不可能吧 check\n");
     }
 
     next->state = TASK_RUNNING;
@@ -250,7 +255,7 @@ void  thread_a()
     set_interrupt_state(true);
     while (true)
     {
-        printk("+++ "); 
+        printk("AAA "); 
     }
 }
 
@@ -259,7 +264,7 @@ void thread_b()
     set_interrupt_state(true);
     while (true)
     {
-        printk("--- "); 
+        printk("BBB "); 
     }
 }
 void thread_c()
@@ -641,9 +646,9 @@ extern void test_thread();
 void  task_init()
 {
     task_setup();
-    task_create(thread_a, "task_a", 5, KERNEL_USER);
-    task_create(thread_a, "task_b", 5, KERNEL_USER);
-    task_create(thread_c, "task_b", 5, KERNEL_USER);
+    task_create(thread_a, "task_a", 2, KERNEL_USER);
+    task_create(thread_b, "task_b", 2, KERNEL_USER);
+    task_create(thread_c, "task_c", 2, KERNEL_USER);
     // task_create(c, "task_c", 5, KERNEL_USER);
      
     // schedule();

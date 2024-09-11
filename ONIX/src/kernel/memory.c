@@ -273,7 +273,7 @@ void mapping_init()
     for (idx_t didx = 0; didx < (sizeof(KERNEL_PAGE_TABLE) / 4); didx++)
     {
         page_entry_t *pte = (page_entry_t *)KERNEL_PAGE_TABLE[didx];  //PTE指向 4字节结构体， 值为0x 2000，3000，4000 ，5000
-        memset(pte, 0, PAGE_SIZE);  //但却把整个页表都清零了
+        memset(pte, 0, PAGE_SIZE);  //把整个页表都清零了
 
         page_entry_t *dentry = &pde[didx]; //dentry指向 PDE的 4个字节  ，pde[0] = 0x1000 pde[1]=0x1004
         entry_init(dentry, IDX((u32)pte));  // 让每个PDE结构指向一个 pte4K空间的起始位置 0x2000~0x5000

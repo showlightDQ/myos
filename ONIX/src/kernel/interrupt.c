@@ -20,7 +20,7 @@
 gate_t idt[IDT_SIZE];
 pointer_t idt_ptr;
 
-handler_t handler_table[IDT_SIZE];   //handler_table只不过是个void指针
+handler_t handler_table[IDT_SIZE];   //handler_table只不过是个void指针 数组，保存着函数的地址
 extern handler_t handler_entry_table[ENTRY_SIZE];
 extern void syscall_handler();
 extern void page_fault();

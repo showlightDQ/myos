@@ -32,9 +32,11 @@ void kernel_init()
 {
      
      asm volatile("xchgw %bx, %bx");
+     interrupt_init();  
+     console_init();
+     gdt_init();
      memory_map_init();
      mapping_init();
-     interrupt_init();  
      clock_init();
      task_init();
 

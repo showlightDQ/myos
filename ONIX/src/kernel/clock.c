@@ -53,7 +53,7 @@ void clock_handler(int vector)
 {
     static int  i = 1,j,k;
     assert(vector == 0x20); 
-    send_eoi(vector); // 发送中断处理结束
+    send_eoi(vector); // 发送中断处理结束  
                      
     jiffies++;
     // if(jiffies%50 == 0)

@@ -1,4 +1,5 @@
 #include<onix/console.h>
+#include<onix/interrupt.h>
 
 #define CRT_ADDR_REG 0x3d4   //CRT(6845)索引寄存器
 #define CRT_DATA_REG 0x3d5   //CRT(6845)数据寄存器
@@ -192,6 +193,7 @@ void console_clear()
 
 void console_write(char *buf , u32 count)
 {
+    bool intstatus = interrupt_disable();
     char ch;
     char* ptr = (char*)pos;
     while (count--)
@@ -243,8 +245,9 @@ void console_write(char *buf , u32 count)
     }
     // command_lf();
     // command_cr();
+    set_interrupt_state(intstatus);
 }
-  
+
 void console_init()
 {
    
