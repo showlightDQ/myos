@@ -19,7 +19,7 @@ extern void time_init();
 extern void rtc_init();
 
 extern void clock_init();
-extern void bitmaptest();
+extern void syscall_init();
 
 // #define CRT_ADDR_REG 0x3d4
 // #define CRT_DATA_REG 0x3d5
@@ -39,13 +39,14 @@ void kernel_init()
      mapping_init();
      clock_init();
      task_init();
+     syscall_init();
 
      // set_alarm(2);
      // time_init();
      // rtc_init();
      set_interrupt_state(true);
 
-     hang();
+     // hang();
 
      return;
 }

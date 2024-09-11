@@ -110,7 +110,8 @@ kernel.bin:  kernel.o  \
 		time.o \
 		rtc.o \
 		memory.o \
-		bitmap.o
+		bitmap.o  \
+		gate.o
 
 		    # 此处 文件先后 可能影响 dbg 的效果。
 	ld -m elf_i386 -Bstatic \
@@ -133,7 +134,8 @@ kernel.bin:  kernel.o  \
 	$(KERNEL)/$(word 17,$^)  \
 	$(KERNEL)/$(word 18,$^)  \
 	$(KERNEL)/$(word 19,$^)  \
-	$(LIB)/$(word 20,$^)  \
+	$(LIB)/$(word 20,$^)     \
+	$(KERNEL)/$(word 21,$^)  \
 	-o $(KERNEL)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
 	objcopy -O binary $(KERNEL)/$< $(BUILD)/$@  

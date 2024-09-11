@@ -200,10 +200,7 @@ void idt_init()
     for (size_t i = 0; i < 0x20; i++)
     {
         handler_table[i] = exception_handler;
-    }
-
-
-    
+    }    
     // handler_table[0xe] = page_fault;  
 
     for (size_t i = 0x20; i < ENTRY_SIZE; i++)
@@ -212,15 +209,15 @@ void idt_init()
     }
 
     // 初始化系统调用
-    // gate_t *gate = &idt[0x80];
-    // gate->offset0 = (u32)syscall_handler & 0xffff;
-    // gate->offset1 = ((u32)syscall_handler >> 16) & 0xffff;
-    // gate->selector = 1 << 3; // 代码段
-    // gate->reserved = 0;      // 保留不用
-    // gate->type = 0b1110;     // 中断门
-    // gate->segment = 0;       // 系统段
-    // gate->DPL = 3;           // 用户态
-    // gate->present = 1;       // 有效
+    gate_t *gate = &idt[0x80];
+    gate->offset0 = (u32)syscall_handler & 0xffff;
+    gate->offset1 = ((u32)syscall_handler >> 16) & 0xffff;
+    gate->selector = 1 << 3; // 代码段
+    gate->reserved = 0;      // 保留不用
+    gate->type = 0b1110;     // 中断门
+    gate->segment = 0;       // 系统段
+    gate->DPL = 3;           // 用户态
+    gate->present = 1;       // 有效
 
     idt_ptr.base = (u32)idt;
     idt_ptr.limit = sizeof(idt) - 1;

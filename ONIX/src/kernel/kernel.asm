@@ -11,9 +11,8 @@ _start:
     push eax  ;magic 0x20220205
     call memory_init
     call kernel_init
-    
-    
      
 
-
+    mov eax,0   ;系统调用号
+    int 0x80  ; 系统调用
     jmp $
