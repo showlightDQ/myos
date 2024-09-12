@@ -1,7 +1,7 @@
 #include <onix/interrupt.h>
 #include <onix/assert.h>
 #include <onix/debug.h>
-// #include <onix/syscall.h>
+#include <onix/syscall.h>
 #include <onix/task.h>
 #include <onix/console.h>
 #include <onix/memory.h>
@@ -127,7 +127,7 @@ void syscall_init()
     // syscall_table[SYS_NR_EXECVE] = sys_execve;
 
     // syscall_table[SYS_NR_SLEEP] = task_sleep;
-    // syscall_table[SYS_NR_YIELD] = task_yield;
+    syscall_table[SYS_NR_YIELD] = task_yield;
 
     // syscall_table[SYS_NR_GETPID] = sys_getpid;
     // syscall_table[SYS_NR_GETPPID] = sys_getppid;

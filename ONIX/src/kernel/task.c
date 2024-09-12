@@ -6,7 +6,7 @@
 #include <onix/interrupt.h>
 #include <onix/string.h>
 #include <onix/bitmap.h>
-// #include <onix/syscall.h>
+#include <onix/syscall.h>
 #include <onix/list.h>
 #include <onix/global.h>
 // #include <onix/arena.h>
@@ -128,10 +128,10 @@ static task_t *task_search(task_state_t state)
     return task;
 }
 
-// void task_yield()
-// {
-//     schedule();
-// }
+void task_yield()
+{
+    schedule();
+}
 
 // bool _inline task_leader(task_t *task)
 // {
@@ -219,7 +219,7 @@ task_t *running_task()   // 读取栈寄存器，并返回。 作为任务的标
 
 void schedule()
 {
-//     assert(!get_interrupt_state()); // 不可中断
+    assert(!get_interrupt_state()); // 不可中断
 
     task_t *current = running_task();  
     task_t *next = task_search(TASK_READY);  //从 task_table[]里挑选一个 TASK_READY 的任务，最远的，且时间片最多的
@@ -237,9 +237,9 @@ void schedule()
         current->ticks = current->priority;
     }
     else
-    {//应该不可能执行到这吧？
-        BMB;
-        DEBUGK("不可能吧 check\n");
+    {//应该不可能执行到这吧？ 非时钟中断调用schedule时可能进入这里
+        // BMB;
+        // DEBUGK("不可能吧 check\n");
     }
 
     next->state = TASK_RUNNING;
@@ -255,7 +255,8 @@ void  thread_a()
     set_interrupt_state(true);
     while (true)
     {
-        printk("AAA "); 
+        printk("AAA ");
+        yield();
     }
 }
 
@@ -265,6 +266,7 @@ void thread_b()
     while (true)
     {
         printk("BBB "); 
+        yield();
     }
 }
 void thread_c()
@@ -272,6 +274,7 @@ void thread_c()
     set_interrupt_state(true);
     while (true)
     {
+        yield();
         printk("ccc "); 
     }
 }
@@ -661,4 +664,5 @@ void  task_init()
     idle_task = task_create(thread_c, "idle", 1, KERNEL_USER);
 //     task_create(init_thread, "init", 5, NORMAL_USER);
 //     task_create(test_thread, "test", 5, NORMAL_USER);
+   
 }

@@ -41,7 +41,8 @@
         "typeinfo": "c",
         "valarray": "c",
         "*.inc": "c",
-        "task.h": "c"
+        "task.h": "c",
+        "syscall.h": "c"
     },
     "C_Cpp.dimInactiveRegions": false
 }

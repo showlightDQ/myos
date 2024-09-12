@@ -13,6 +13,4 @@ _start:
     call kernel_init
      
 
-    mov eax,0   ;系统调用号
-    int 0x80  ; 系统调用
     jmp $

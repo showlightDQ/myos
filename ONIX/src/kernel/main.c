@@ -13,6 +13,7 @@
 #include <onix/stdlib.h>
 #include <onix/rtc.h>
 #include <onix/memory.h>
+#include <onix/syscall.h>
 // #include <onix/time.h>
 
 extern void time_init();
@@ -37,7 +38,7 @@ void kernel_init()
      gdt_init();
      memory_map_init();
      mapping_init();
-     clock_init();
+     // clock_init();
      task_init();
      syscall_init();
 
@@ -45,7 +46,7 @@ void kernel_init()
      // time_init();
      // rtc_init();
      set_interrupt_state(true);
-
+      yield();
      // hang();
 
      return;
