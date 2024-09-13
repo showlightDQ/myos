@@ -29,7 +29,7 @@ extern tss_t tss;
 extern void task_switch(task_t *next);
 
 task_t *task_table[TASK_NR]; // 任务表
-// static list_t block_list;    // 任务默认阻塞链表
+static list_t block_list;    // 任务默认阻塞链表
 static list_t sleep_list;    // 任务睡眠链表
 
 static task_t *idle_task;
@@ -133,64 +133,64 @@ void task_yield()
     schedule();
 }
 
-// bool _inline task_leader(task_t *task)
-// {
-//     return task->sid == task->pid;
-// }
+bool _inline task_leader(task_t *task)
+{
+    return task->sid == task->pid;
+}
 
 // 任务阻塞  test
-// int task_block(task_t *task, list_t *blist, task_state_t state, int timeout_ms)
-// {
-//     assert(!get_interrupt_state());
-//     assert(task->node.next == NULL);
-//     assert(task->node.prev == NULL);
+int task_block(task_t *task, list_t *blist, task_state_t state, int timeout_ms)
+{
+    assert(!get_interrupt_state());
+    assert(task->node.next == NULL);
+    assert(task->node.prev == NULL);
 
-//     if (blist == NULL)
-//     {
-//         blist = &block_list;
-//     }
+    if (blist == NULL)
+    {
+        blist = &block_list;
+    }
 
-//     assert(state != TASK_READY && state != TASK_RUNNING);
+    assert(state != TASK_READY && state != TASK_RUNNING);
 
-//     list_push(blist, &task->node);
-//     if (timeout_ms > 0)
-//     {
-//         timer_add(timeout_ms, NULL, NULL);
-//     }
+    list_push(blist, &task->node);
+    if (timeout_ms > 0)
+    {
+        timer_add(timeout_ms, NULL, NULL);
+    }
 
-//     task->state = state;
+    task->state = state;
 
-//     task_t *current = running_task();
-//     if (current == task)
-//     {
-//         schedule();
-//     }
+    task_t *current = running_task();
+    if (current == task)
+    {
+        schedule();
+    }
 
-//     return task->status;
-// }
+    return task->status;
+}
 
 // // 解除任务阻塞
-// void task_unblock(task_t *task, int reason)
-// {
-//     assert(!get_interrupt_state());
+void task_unblock(task_t *task, int reason)
+{
+    assert(!get_interrupt_state());
 
-//     list_remove(&task->node);
+    list_remove(&task->node);
 
-//     assert(task->node.next == NULL);
-//     assert(task->node.prev == NULL);
+    assert(task->node.next == NULL);
+    assert(task->node.prev == NULL);
 
-//     task->status = reason;
-//     task->state = TASK_READY;
-// }
+    task->status = reason;
+    task->state = TASK_READY;
+}
 
-// void task_sleep(u32 ms)
-// {
-//     assert(!get_interrupt_state()); // 不可中断
+void task_sleep(u32 ms)
+{
+    assert(!get_interrupt_state()); // 不可中断
 
-//     task_t *task = running_task();
+    task_t *task = running_task();
 
-//     task_block(task, &sleep_list, TASK_SLEEPING, ms);
-// }
+    task_block(task, &sleep_list, TASK_SLEEPING, ms);
+}
 
 // // // 激活任务
 void task_activate(task_t *task)
@@ -237,7 +237,7 @@ void schedule()
         current->ticks = current->priority;
     }
     else
-    {//应该不可能执行到这吧？ 非时钟中断调用schedule时可能进入这里
+    {//应该不可能执行到这吧？ 答：非时钟中断调用schedule时可能进入这里
         // BMB;
         // DEBUGK("不可能吧 check\n");
     }
@@ -404,27 +404,27 @@ static task_t *task_create(target_t target, const char *name, u32 priority, u32 
 // #endif
 // }
 
-// extern void interrupt_exit();
+extern void interrupt_exit();
 
-// static void task_build_stack(task_t *task)
-// {
-//     u32 addr = (u32)task + PAGE_SIZE;
-//     addr -= sizeof(intr_frame_t);
-//     intr_frame_t *iframe = (intr_frame_t *)addr;
-//     iframe->eax = 0;
+static void task_build_stack(task_t *task)
+{
+    u32 addr = (u32)task + PAGE_SIZE;
+    addr -= sizeof(intr_frame_t);
+    intr_frame_t *iframe = (intr_frame_t *)addr;
+    iframe->eax = 0;
 
-//     addr -= sizeof(task_frame_t);
-//     task_frame_t *frame = (task_frame_t *)addr;
+    addr -= sizeof(task_frame_t);
+    task_frame_t *frame = (task_frame_t *)addr;
 
-//     frame->ebp = 0xaa55aa55;
-//     frame->ebx = 0xaa55aa55;
-//     frame->edi = 0xaa55aa55;
-//     frame->esi = 0xaa55aa55;
+    frame->ebp = 0xaa55aa55;
+    frame->ebx = 0xaa55aa55;
+    frame->edi = 0xaa55aa55;
+    frame->esi = 0xaa55aa55;
 
-//     frame->eip = interrupt_exit;
+    frame->eip = interrupt_exit;
 
-//     task->stack = (u32 *)frame;
-// }
+    task->stack = (u32 *)frame;
+}
 
 // pid_t task_fork()
 // {
