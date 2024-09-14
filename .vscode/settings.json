@@ -42,7 +42,8 @@
         "valarray": "c",
         "*.inc": "c",
         "task.h": "c",
-        "syscall.h": "c"
+        "syscall.h": "c",
+        "list.h": "c"
     },
     "C_Cpp.dimInactiveRegions": false
 }

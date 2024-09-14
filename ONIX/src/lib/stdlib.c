@@ -32,6 +32,7 @@ u32 div_round_up(u32 num, u32 size)
     return (num + size - 1) / size;
 }
 
+//  把表示数字的字符串，转换成int型数值 ，并返回
 int atoi(const char *str)
 {
     if (str == NULL)
@@ -45,6 +46,7 @@ int atoi(const char *str)
     }
     for (; *str; str++)
     {
+        //TODO : 这里应该判断字符是否是有效数表示
         result = result * 10 + (*str - '0');
     }
     return result * sign;
