@@ -16,7 +16,6 @@ task_switch:
     mov [eax], esp  ;把当前进程的栈指针存入栈底
 
     ;.........................................................................
-    mov ecx,[ebp + 4]
     mov eax, [ebp + 8];跳过ebp前的4字节的ebp值，和4字节的eip值,拿到传入的参数 next  
     mov esp, [eax]   ; 切换栈环境， 进程从这里开始正式切换！！！！！！！
                     ; next开始的4K是另一个栈， 起始地址存着另一任务的esp值
@@ -24,10 +23,6 @@ task_switch:
     pop esi
     pop ebx
     pop ebp
-
-    pop eax
-    
-    push ecx
-    push eax
+  
 
     ret
