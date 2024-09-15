@@ -39,7 +39,7 @@ void kernel_init()
      gdt_init();
      memory_map_init();
      mapping_init();
-     // clock_init();
+     clock_init();
      task_init();
      syscall_init();
 

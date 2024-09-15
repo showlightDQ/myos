@@ -18,8 +18,8 @@
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
-// extern u32 volatile jiffies;
-// extern u32 jiffy;
+extern u32 volatile jiffies;
+extern u32 jiffy;
 extern bitmap_t kernel_map;
 extern tss_t tss;
 // extern file_t file_table[];
@@ -174,7 +174,7 @@ void task_unblock(task_t *task, int reason)
 {
     assert(!get_interrupt_state());
 
-    list_remove(&task->node);
+    list_remove(&task->node); //把task的node从链表中解除，并设前后都为NULL
 
     assert(task->node.next == NULL);
     assert(task->node.prev == NULL);
@@ -185,11 +185,53 @@ void task_unblock(task_t *task, int reason)
 
 void task_sleep(u32 ms)
 {
+    // assert(!get_interrupt_state()); // 不可中断
+
+    // task_t *task = running_task();
+
+    //  task_block(task, &sleep_list, TASK_SLEEPING, ms);
     assert(!get_interrupt_state()); // 不可中断
 
-    task_t *task = running_task();
+    u32 ticks = ms / jiffy;
+    ticks = ticks > 0 ? ticks : 1;
 
-    task_block(task, &sleep_list, TASK_SLEEPING, ms);
+    task_t *current = running_task();
+    current->ticks = jiffies + ticks;
+
+    list_t *list = &sleep_list;
+    list_node_t *anchor = &list->tail;
+
+    for (list_node_t *ptr = list->head.next; ptr != &list->tail ; ptr = ptr->next)
+    {
+        task_t *task = element_entry(task_t, node, ptr);
+        if (task->ticks > current->ticks)  //从小到大排列node
+        {
+            anchor = ptr;
+            break;
+        }
+    }
+    assert(current->node.next == NULL);
+
+    list_insert_before(anchor, &current->node);
+    current->state = TASK_SLEEPING;
+    schedule();
+    //  task_block(task, &sleep_list, TASK_SLEEPING, ms);
+}
+
+void task_wakeup()
+{
+    assert(!get_interrupt_state());
+
+    list_t *list = &sleep_list;
+    for (list_node_t *ptr = list->head.next; ptr != &list->tail;    )
+    {
+        task_t *task = element_entry(task_t,node,ptr);
+        if(task->ticks > jiffies)  //只要找到ticks比当前时间还大的，说明还没到时，后面的就不唤醒了
+            break;
+        ptr = ptr->next; //接下来unblock后，ptr指向的节点就不在链表中了，所以要先取得下一个节点
+        task->ticks = 0;
+        task_unblock(task,0);
+    }
 }
 
 // // // 激活任务
@@ -296,7 +338,10 @@ static task_t *task_create(target_t target, const char *name, u32 priority, u32 
     frame->esi = 0x02222222;
     frame->ebx = 0x03333333;  //由低到高地址 存储 寄存器值
     frame->ebp = 0x04444444;
-    frame->eip = (void *)target;  // 最高地址(0x*fffc~0x*ffff)的值，handler的地址，任务切换后放入eip 
+    frame->eip = (void *)target;  // 最高地址(0x*fffc~0x*ffff)的值，handler的地址，任务切换后放入eip
+
+    extern void idle_thread(void);
+    frame->alternate = (void *)idle_thread; // 我自己加的，试试效果
     // 进程切换时 esp 存在task的0地址处，切换时已设置
     strcpy((char *)task->name, name);  // 这里应换为 strncpy 确保不溢出
 
@@ -655,10 +700,13 @@ extern void test_thread();
 void  task_init()
 {
     list_init(&block_list);
-    // list_init(&sleep_list); 
+    list_init(&sleep_list); 
+
     task_setup();
+    
     idle_task = task_create(idle_thread, "idle", 1, KERNEL_USER);
     task_create(test_thread, "test", 5, NORMAL_USER);
+    task_create(init_thread, "init", 5, NORMAL_USER);
   
     // task_create(c, "task_c", 5, KERNEL_USER);
      
@@ -666,6 +714,5 @@ void  task_init()
 
 //     task_setup();
 
-//     task_create(init_thread, "init", 5, NORMAL_USER);
    
 }

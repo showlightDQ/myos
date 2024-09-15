@@ -9,7 +9,7 @@
 #define PIT_CHAN2_REG 0X42
 #define PIT_CTRL_REG 0X43  // 时间芯片的端口号
 
-#define HZ 1
+#define HZ 100
 #define OSCILLATOR 1193182
 #define CLOCK_COUNTER (OSCILLATOR / HZ)
 #define JIFFY (1000 / HZ)  //  运行1000次用的秒数，或，1次用掉的m秒数
@@ -20,7 +20,7 @@
 #define BEEP_MS 100
 
 u32 volatile jiffies = 0;   //全局时间片
-u32 jiffy = JIFFY;
+u32 jiffy = JIFFY; // 运行1000次用的秒数，或，1次用掉的m秒数
 
 int beeping = 0;
 // bool volatile beeping = 0;
@@ -69,8 +69,8 @@ void clock_handler(int vector)
     // }   
     //     DEBUGK("clock jiffies vector=%p,%d\n",vector, jiffies);
     stop_beep();
-    
 
+    task_wakeup();
     // timer_wakeup();
 
     task_t *task = running_task();  // task指针指向 栈底，栈的前N个字节保存的栈信息结构体

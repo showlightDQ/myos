@@ -4,7 +4,8 @@
 #include <onix/types.h>
 
 #define element_offset(type, member) (u32)(&((type *)0)->member)  //返回 type结构体的member项的 偏移量  
-#define element_entry(type, member, ptr) (type *)((u32)ptr - element_offset(type, member))  // type:结构体，member：结构体的成员，ptr:member指针。 作用：通过结构体的类型、成员名、成员指针信息 反推出结构体地址并返回
+#define element_entry(type, member, ptr) (type *)((u32)ptr - element_offset(type, member))  // type:结构体，member：结构体的成员名，ptr:member指针。 
+                                                                            //作用：通过结构体的类型、成员名、成员指针信息 反推出结构体地址并返回
 #define element_node_offset(type, node, key) ((int)(&((type *)0)->key) - (int)(&((type *)0)->node))  //返回 type结构体中 key 比 node 高出的字节偏移量。 返回值当作offset用
 #define element_node_key(node, offset) *(int *)((int)node + offset)  // 返回node后offset个字节的数据的int值。 作用时，给入node指针，得到下一项的指针
 

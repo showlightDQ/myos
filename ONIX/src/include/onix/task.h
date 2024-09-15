@@ -71,7 +71,8 @@ typedef struct task_frame_t  // 进程切换时栈内的预设寄存器数据，
     u32 ebp;
     // void (*eip)(void);
     void* eip;  //测试看看
-}task_frame_t;
+    void *alternate;  //任务自然结束后留一个保底的切换程序
+} task_frame_t;
 
 // 中断帧
 typedef struct intr_frame_t

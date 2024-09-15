@@ -46,7 +46,7 @@ interrupt_entry:
 
 interrupt_exit:
 
-    ; 对应调用前的push eax，相关于pop eax ，弹出调用前压入的参数。（调用结束恢复栈）
+    ; 对应调用前的push eax，相当于pop eax ，弹出调用前压入的参数。（调用结束恢复栈）
     add esp, 4
 
     ; 调用信号处理函数
