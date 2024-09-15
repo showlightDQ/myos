@@ -12,7 +12,7 @@
 // #include <onix/arena.h>
 // #include <onix/fs.h>
 // #include <onix/errno.h>
-// #include <onix/timer.h>
+#include <onix/timer.h>
 // #include <onix/device.h>
 // #include <onix/tty.h>
 
@@ -114,7 +114,7 @@ static task_t *task_search(task_state_t state)
 
         if (ptr->state != state)  //不是要找的状态，跳过
             continue;
-        if (current == ptr)  // 当前正在运行的线程，跳过
+        if (current == ptr)  // 当前正在运行的任务，跳过
             continue;
         if (task == NULL || task->ticks < ptr->ticks || ptr->jiffies < task->jiffies) //适合的任务中，找到 ticks 最大的、调度时间更早的进程 ，交给 task
             task = ptr;
@@ -155,7 +155,7 @@ int task_block(task_t *task, list_t *blist, task_state_t state, int timeout_ms)
     list_push(blist, &task->node);
     if (timeout_ms > 0)
     {
-        timer_add(timeout_ms, NULL, NULL);
+        // timer_add(timeout_ms, NULL, NULL);
     }
 
     task->state = state;
@@ -246,7 +246,7 @@ void schedule()
     if (next == current)
         return;
 
-    // task_activate(next);
+    task_activate(next);
     task_switch(next);
 }
 
@@ -257,6 +257,7 @@ void  thread_a()
     {
         printk("AAA ");
         yield();
+        test();
     }
 }
 
@@ -265,8 +266,9 @@ void thread_b()
     set_interrupt_state(true);
     while (true)
     {
-        printk("BBB "); 
+         printk("BBB "); 
         yield();
+         test();
     }
 }
 void thread_c()
@@ -276,6 +278,7 @@ void thread_c()
     {
         yield();
         printk("ccc "); 
+         test();
     }
 }
 
@@ -293,7 +296,7 @@ static task_t *task_create(target_t target, const char *name, u32 priority, u32 
     frame->esi = 0x22222222;
     frame->edi = 0x33333333;
     frame->ebp = 0x44444444;
-    frame->eip = (void *)target;  // 最高地址的 寄存器值
+    frame->eip = (void *)target;  // 最高地址(0x*fffc~0x*ffff)的值，handler的地址，任务切换后放入eip 
     // 进程切换时 esp 存在task的0地址处，切换时已设置
     strcpy((char *)task->name, name);  // 这里应换为 strncpy 确保不溢出
 
@@ -638,7 +641,7 @@ void static task_setup()
     task->magic = ONIX_MAGIC;
     task->ticks = 1;
 
-    memset(task_table, 0, sizeof(task_table)); //task_table是任务指针数组，它的项用来指向task_t的结构体。
+    memset(task_table, 0, sizeof(task_table)); //task_table是任务指针数组，它的项是用来指向task_t的结构体。
 }
 
 extern void idle_thread();
@@ -648,21 +651,18 @@ extern void test_thread();
 
 void  task_init()
 {
+    list_init(&block_list);
+    // list_init(&sleep_list); 
     task_setup();
-    task_create(thread_a, "task_a", 2, KERNEL_USER);
-    task_create(thread_b, "task_b", 2, KERNEL_USER);
-    task_create(thread_c, "task_c", 2, KERNEL_USER);
+    idle_task = task_create(idle_thread, "idle", 1, KERNEL_USER);
+    task_create(test_thread, "test", 5, NORMAL_USER);
+  
     // task_create(c, "task_c", 5, KERNEL_USER);
      
     // schedule();
-//     list_init(&block_list);
-//     list_init(&sleep_list); 
 
 //     task_setup();
 
-    // idle_task = task_create(idle_thread, "idle", 1, KERNEL_USER);
-    idle_task = task_create(thread_c, "idle", 1, KERNEL_USER);
 //     task_create(init_thread, "init", 5, NORMAL_USER);
-//     task_create(test_thread, "test", 5, NORMAL_USER);
    
 }

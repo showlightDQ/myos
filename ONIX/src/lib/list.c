@@ -133,3 +133,42 @@ void list_insert_sort(list_t *list, list_node_t *node, int offset)
     // 插入链表
     list_insert_before(anchor, node);
 }
+
+// void test_list()
+// {
+//     #include<onix/debug.h>
+//     #include<onix/memory.h>
+//     int count = 3;
+//     list_t holder;
+//     list_t * list = &holder;
+//     list_init(list);
+//     list_node_t *node;
+//     while (count--)
+//     {
+//         node = (list_node_t*)alloc_kpage(1);
+//         list_push(list, node);
+//     }
+//     DEBUGK("list count %d", list_size(list));
+//     while (!list_empty(list))
+//     {
+//         node = list_pop(list);
+//         free_kpage((u32)node,1);
+//     }
+//                     count = 3;
+//      while (count--)
+//     {
+//         node = (list_node_t*)alloc_kpage(1);
+//         list_pushback(list, node);
+//     }
+    
+//     DEBUGK("list count %d", list_size(list));
+//     DEBUGK("search node 0X%p ----> %d", node, list_search(list, node));
+//     DEBUGK("search node 0X%p ----> %d", 0, list_search(list, 0));
+//     while (!list_empty(list))
+//     {
+//         node = list_popback(list);
+//         free_kpage((u32)node,1);
+//     }
+ 
+//     free_kpage((u32)node, 1);
+// }

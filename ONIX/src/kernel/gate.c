@@ -29,6 +29,8 @@ static void sys_default()
     panic("syscall not implemented!!!");
 }
 
+task_t *task = NULL;
+
 static u32 sys_test()
 {
     char ch;
@@ -49,6 +51,18 @@ static u32 sys_test()
     // device_write(serial->dev, &ch, 1, 0, 0);
     // device_write(console->dev, &ch, 1, 0, 0);
     DEBUGK("System call test\n");
+
+    if(!task)
+    {
+        task = running_task();
+        // DEBUGK("block task %#p \n", task);
+        task_block(task, NULL, TASK_BLOCKED,5);
+    }
+    else{
+        task_unblock(task,0);
+        task = NULL;
+    }
+
     return 255;
 }
 
@@ -127,7 +141,7 @@ void syscall_init()
     // syscall_table[SYS_NR_EXECVE] = sys_execve;
 
     // syscall_table[SYS_NR_SLEEP] = task_sleep;
-    syscall_table[SYS_NR_YIELD] = task_yield;
+    syscall_table[SYS_NR_YIELD] = task_yield;  // task_yield task.c里面
 
     // syscall_table[SYS_NR_GETPID] = sys_getpid;
     // syscall_table[SYS_NR_GETPPID] = sys_getppid;

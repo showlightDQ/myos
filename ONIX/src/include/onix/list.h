@@ -8,7 +8,7 @@
 #define element_node_offset(type, node, key) ((int)(&((type *)0)->key) - (int)(&((type *)0)->node))  //返回 type结构体中 key 比 node 高出的字节偏移量。 返回值当作offset用
 #define element_node_key(node, offset) *(int *)((int)node + offset)  // 返回node后offset个字节的数据的int值。 作用时，给入node指针，得到下一项的指针
 
-// 链表结点
+// 链表结点。使用时，结点的实体实际是在task_t结构中，通过链表找到结点的指针，再通过偏移量就可以访问task_t的其他字段
 typedef struct list_node_t
 {
     struct list_node_t *prev; // 下一个结点

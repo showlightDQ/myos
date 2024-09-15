@@ -15,6 +15,7 @@ extern u32 jiffy;
 
 static list_t timer_list;
 
+//分配一页的内存 返回页首地址作为 timer_t结构体地址
 static timer_t *timer_get()
 {
     timer_t *timer = (timer_t *)kmalloc(sizeof(timer_t));
@@ -37,7 +38,7 @@ timer_t *timer_add(u32 expire_ms, handler_t handler, void *arg)
 {
     timer_t *timer = timer_get();
     timer->task = running_task();
-    timer->expires = jiffies + expire_ms / jiffy;
+    timer->expires = jiffies + expire_ms / jiffy;   //  jiffy：1次用掉的m秒数。expire_ms/jiffy求出 轮到的次数  
     timer->handler = handler;
     timer->arg = arg;
     timer->active = false;

@@ -9,7 +9,7 @@ task_switch:
 
     push ebx   ;  
     push esi
-    push edi  ;约定 函数独享寄存器只有 ebx esi edi  ，存起来，下次用
+    push edi  ;约定 任务函数独享寄存器只有 ebx esi edi  ，存起来，下次用
 
     mov eax, esp;
     and eax, 0xfffff000; current  获得当前进程的栈底地址，也就是结构体地址

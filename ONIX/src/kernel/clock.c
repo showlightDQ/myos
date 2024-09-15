@@ -12,7 +12,7 @@
 #define HZ 1
 #define OSCILLATOR 1193182
 #define CLOCK_COUNTER (OSCILLATOR / HZ)
-#define JIFFY (1000 / HZ)
+#define JIFFY (1000 / HZ)  //  运行1000次用的秒数，或，1次用掉的m秒数
 
 #define SPEAKER_REG 0x61
 #define BEEP_HZ 4400

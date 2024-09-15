@@ -29,6 +29,7 @@ extern void syscall_init();
 // #define CRT_CURSOR_L 0xf
 
 
+      
 void kernel_init()
 {
      
@@ -45,8 +46,9 @@ void kernel_init()
      // set_alarm(2);
      // time_init();
      // rtc_init();
+      
      set_interrupt_state(true);
-      yield();
+     yield();
      // hang();
 
      return;

@@ -104,7 +104,7 @@ int kill(pid_t pid, int signal)
     return _syscall2(SYS_NR_KILL, pid, signal);
 }
 
-void yield()
+void yield()   // gate.c里面有一个task_yield
 {
     _syscall0(SYS_NR_YIELD);
 }
