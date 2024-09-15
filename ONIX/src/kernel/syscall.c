@@ -1,6 +1,7 @@
 #include <onix/syscall.h>
 // #include <onix/signal.h>
 
+//_syscall* 这里*的数字代表 除了中断号，后面跟着几个参数
 static _inline u32 _syscall0(u32 nr)
 {
     u32 ret;

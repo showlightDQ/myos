@@ -292,15 +292,15 @@ static task_t *task_create(target_t target, const char *name, u32 priority, u32 
 
     stack -= sizeof(task_frame_t); //留出进程切换寄存器的空间，stack的地址作为 task_frame_t 的起始地址
     task_frame_t *frame = (task_frame_t *)stack;  //task_frame_t 的起始地址
-    frame->ebx = 0x11111111;  //由低到高地址 存储 寄存器值
-    frame->esi = 0x22222222;
-    frame->edi = 0x33333333;
-    frame->ebp = 0x44444444;
+    frame->edi = 0x01111111;
+    frame->esi = 0x02222222;
+    frame->ebx = 0x03333333;  //由低到高地址 存储 寄存器值
+    frame->ebp = 0x04444444;
     frame->eip = (void *)target;  // 最高地址(0x*fffc~0x*ffff)的值，handler的地址，任务切换后放入eip 
     // 进程切换时 esp 存在task的0地址处，切换时已设置
     strcpy((char *)task->name, name);  // 这里应换为 strncpy 确保不溢出
 
-    task->stack = (u32 *)stack;
+    task->stack = (u32 *)stack;  //地址是0x*****000，任务切换时该值被读入 esp
     task->priority = priority;
     task->ticks = task->priority;
     task->jiffies = 0;
@@ -311,7 +311,9 @@ static task_t *task_create(target_t target, const char *name, u32 priority, u32 
     task->sid = 0;
     task->vmap = &kernel_map;
     task->pde = KERNEL_PAGE_DIR; // page directory entry
-    task->magic = ONIX_MAGIC;
+    task->magic = ONIX_MAGIC;  //任务结构体的最高一个值， 检测它可以检测栈溢出
+
+    DEBUGK("creat task. use stack %#p,name:%s handler:%#p" ,task, name,target);
 
     return task;
 }
@@ -638,6 +640,7 @@ static void task_build_stack(task_t *task)
 void static task_setup()
 {
     task_t *task = running_task();
+    memset(task, 0, sizeof(task_t));
     task->magic = ONIX_MAGIC;
     task->ticks = 1;
 

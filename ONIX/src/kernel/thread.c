@@ -60,11 +60,11 @@ void test_thread()
 {
     set_interrupt_state(true);
 
-    while (true)
-    {
+    // while (true)
+    // {
         // sleep(10);
         DEBUGK("test thread!!!  %d \n",counter);
         // test();
-    }
+    // }
     
 }

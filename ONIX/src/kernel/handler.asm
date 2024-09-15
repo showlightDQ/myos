@@ -46,7 +46,7 @@ interrupt_entry:
 
 interrupt_exit:
 
-    ; 对应 push eax，调用结束恢复栈
+    ; 对应调用前的push eax，相关于pop eax ，弹出调用前压入的参数。（调用结束恢复栈）
     add esp, 4
 
     ; 调用信号处理函数
@@ -184,23 +184,24 @@ extern syscall_check
 extern syscall_table
 global syscall_handler
 syscall_handler:
-    ; xchg bx, bx
+    ; int 0x80   后来到这里  。 进来这里前 做过 push eflag ; push cs; push eip 
 
-    ; 验证系统调用号
+    ;这里是不是应该先 push ebp  ; mov ebp,esp 
+
     push eax
-    call syscall_check
-    add esp, 4
-
+    call syscall_check  ; 验证系统调用号
+    ; add esp, 4   ;  原语句 ; 以上语句可以保证，eax不变？ 下面的语句不用取出push的eax？
+    pop eax ;这句是我改的
+    
     push 0x20222202
-
     push 0x80
 
     ; 保存上文寄存器信息
-    push ds
+    push ds ; 每个寄存器32位，4字节
     push es
     push fs
     push gs
-    pusha
+    pusha  ; 压入8个寄存器 32字节 顺序是：eax,ecx,edx,ebx,esp(上一次push后的值，不等同于这里的顺序执行值），ebp,esi,edi
 
     push 0x80; 向中断处理函数传递参数中断向量 vector
     ; xchg bx, bx
@@ -216,9 +217,9 @@ syscall_handler:
     call [syscall_table + eax * 4]
 
     ; xchg bx, bx
-    add esp, (6 * 4); 系统调用结束恢复栈
+    add esp, (6 * 4); 等于pop6个参数值，esp指向 push 0x80 的结果
 
-    ; 修改栈中 eax 寄存器，设置系统调用返回值
+    ; 修改栈中刚才pusha时压入的eax值，设置系统调用返回值
     mov dword [esp + 8 * 4], eax
 
     ; 跳转到中断返回

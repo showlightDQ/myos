@@ -28,7 +28,7 @@ typedef enum task_state_t
 
 typedef struct task_t
 {
-    u32 *stack;                         // 内核栈  值为本页的起始地址，
+    u32 *stack;                         // 内核栈  位于本页的起始地址，使用时值被赋为 esp
     list_node_t node;                   // 任务阻塞节点
     task_state_t state;                 // 任务状态
     u32 priority;                       // 任务优先级
