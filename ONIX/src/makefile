@@ -3,7 +3,8 @@ BUILD :=../build
 TEST :=./test
 SRC   :=.
 KERNEL :=../build/kernel
-ENTRYPOINT := 0x10000
+MULTIBOOT2 := 0x10000
+ENTRYPOINT := 0x10040
 LIB    :=../build/lib
 INCLUDE:= -I$(SRC)/include
 

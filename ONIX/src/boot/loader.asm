@@ -257,6 +257,7 @@ read_disk:  ;从硬盘的第ecx扇区读取bl个扇区，读入内存地址edi�
         ;  0x1f7的数据：（out:0xEC:识别硬盘； 0x20 读硬盘 ； 0x30 写硬盘)
         ;               (in: 0位 err;  3位 DRQ 数据准备完毕； 7位 Busy 硬盘繁忙）
     
+  
     ;参数定义
     ;edi-读入的内存地址
     ;ecx-读取的硬盘起始扇区
@@ -416,28 +417,30 @@ protect_mode_entrance:
         ; mov eax, code_selector
         ; mov es,ax
         mov esp, 0x10000    ;设置栈    
+
+
         mov esi,str_pt;
         mov edi,80
         call print_string
          
-
-        ; call setup_page
 
         mov ecx,4
         mov bl,200
         mov edi,0x10000
         call read_disk
          
+        ; call setup_page
+
   
         
-        mov eax,0x20220205  
+        mov eax,0x20220205  ;跳转过去后读取
         mov ebx,ards_count
         ;增加以上两行，以更好地兼容grub
-        jmp code_selector:0x10000
+        jmp code_selector:0x10040
 jmp $  
 
 str_pt:
-    db "In protect mode!!!!!",0
+    db "In protect mode!!!!!  2024,09,17",0
 
     ;=====检测信息存储区=============================
         ards_count:
