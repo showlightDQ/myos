@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             // "program": "${fileDirname}/${fileBasenameNoExtension}.bin",
-            "program": "${workspaceFolder}/ONIX/build/kernel/kernel.bin",
+            "program": "${workspaceFolder}/ONIX/build/kernel.bin",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/ONIX/build/",

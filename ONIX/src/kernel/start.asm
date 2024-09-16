@@ -17,7 +17,7 @@ header_start:
     dd 8  ; size
 
 header_end:
-times(0x40 -($-$$)) db 0x55
+times(0x40 -($-$$)) db 0xff
 
 extern kernel_init
 extern memory_init
