@@ -9,7 +9,8 @@
 // #include <asm/unistd_32.h>
 
 #include <onix/mutex.h>
-extern mutex_t mutex;
+
+lock_t lock;
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
@@ -19,9 +20,9 @@ void idle_thread()
     set_interrupt_state(true);
     while (true)
     {
-        mutex_lock(&mutex);
+        lock_acquire(&lock);
         LOGK("idle task.... %d\n", counter++);
-        mutex_unlock(&mutex);
+        lock_release(&lock);
         // BMB;
         // sleep(100000);
         asm volatile(
@@ -60,15 +61,16 @@ void init_thread()
     // char temp[100]; // 为栈顶有足够的空间
     // dev_init();
     // task_to_user_mode();
+    lock_init(&lock);
 
     u32 counter = 0;
        set_interrupt_state(true);
 
     while (true)
     {
-        mutex_lock(&mutex);
+        lock_acquire(&lock);
         DEBUGK("init thread!!!  counter= %d --------------\n",counter++);
-        mutex_unlock(&mutex);
+        lock_release(&lock);
         sleep(30);
         // test();
     }
@@ -81,9 +83,9 @@ void test_thread()
 
     while (true)
     {
-        mutex_lock(&mutex);
+        lock_acquire(&lock);
         DEBUGK("test thread!!!  counter= %d \n",counter++);
-        mutex_unlock(&mutex);
+        lock_release(&lock);
         sleep(10);
         // test();
     }

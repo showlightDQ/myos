@@ -28,22 +28,22 @@ extern void syscall_init();
 // #define CRT_CURSOR_H 0xe
 // #define CRT_CURSOR_L 0xf
 
-               #include<onix/mutex.h>
-               mutex_t mutex;
-      
-void kernel_init()
-{
-     
-     asm volatile("xchgw %bx, %bx");
-     interrupt_init();  
-     console_init();
-     gdt_init();
-     memory_map_init();
-     mapping_init();
-     clock_init();
-     task_init();
-     syscall_init();
-                     mutex_init(&mutex);
+          
+
+     void kernel_init()
+     {
+
+          asm volatile("xchgw %bx, %bx");
+          interrupt_init();
+          console_init();
+          gdt_init();
+          memory_map_init();
+          mapping_init();
+          clock_init();
+          task_init();
+          syscall_init();
+                            
+                    
 
      // set_alarm(2);
      // time_init();
