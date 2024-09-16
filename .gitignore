@@ -10,4 +10,4 @@ x86asm/build/bx_enh_dbg.ini
 ONIX/bochs/
 !ONIX/bochs/bochsr*
 ONIX/tools/
-
+/home/s/MyProjects/myos/ONIX/build/system.map
