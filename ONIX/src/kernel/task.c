@@ -292,37 +292,6 @@ void schedule()
     task_switch(next);
 }
 
-void  thread_a()
-{
-    set_interrupt_state(true);
-    while (true)
-    {
-        printk("AAA ");
-        yield();
-        test();
-    }
-}
-
-void thread_b()
-{
-    set_interrupt_state(true);
-    while (true)
-    {
-         printk("BBB "); 
-        yield();
-         test();
-    }
-}
-void thread_c()
-{
-    set_interrupt_state(true);
-    while (true)
-    {
-        yield();
-        printk("ccc "); 
-         test();
-    }
-}
 
 
 
@@ -697,6 +666,38 @@ extern void init_thread();
 extern void test_thread();
 
 
+void  thread_a()
+{
+    set_interrupt_state(true);
+    while (true)
+    {
+        printk("AAA ");
+        yield();
+        test();
+    }
+}
+
+void thread_b()
+{
+    set_interrupt_state(true);
+    while (true)
+    {
+         printk("BBB "); 
+        yield();
+         test();
+    }
+}
+void thread_c()
+{
+    set_interrupt_state(true);
+    while (true)
+    {
+        yield();
+        printk("ccc "); 
+         test();
+    }
+}
+
 void  task_init()
 {
     list_init(&block_list);
@@ -705,8 +706,11 @@ void  task_init()
     task_setup();
     
     idle_task = task_create(idle_thread, "idle", 1, KERNEL_USER);
-    task_create(test_thread, "test", 5, NORMAL_USER);
-    task_create(init_thread, "init", 5, NORMAL_USER);
+                task_create(test_thread, "test", 5, NORMAL_USER);
+                task_create(init_thread, "init", 5, NORMAL_USER);
+                task_create(thread_a, "a", 5, NORMAL_USER);
+                task_create(thread_b, "b", 5, NORMAL_USER);
+                task_create(thread_c, "c", 5, NORMAL_USER);
   
     // task_create(c, "task_c", 5, KERNEL_USER);
      

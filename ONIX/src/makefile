@@ -114,7 +114,8 @@ kernel.bin:  kernel.o  \
 		gate.o \
 		syscall.o  \
 		list.o \
-		thread.o
+		thread.o  \
+		mutex.o
 
 		    # 此处 文件先后 可能影响 dbg 的效果。
 	ld -m elf_i386 -Bstatic \
@@ -142,6 +143,9 @@ kernel.bin:  kernel.o  \
 	$(KERNEL)/$(word 22,$^)  \
 	$(LIB)/$(word 23,$^)     \
 	$(KERNEL)/$(word 24,$^)  \
+	$(KERNEL)/$(word 25,$^)  \
+
+
 	-o $(KERNEL)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
 	objcopy -O binary $(KERNEL)/$< $(BUILD)/$@  
