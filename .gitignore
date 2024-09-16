@@ -7,7 +7,11 @@ x86asm/build/bx_enh_dbg.ini
 *.bin
 *.img
 *.vmdk
-*.map
+*system.map
 ONIX/bochs/
 !ONIX/bochs/bochsr*
 ONIX/tools/
+ONIX/src/helpfiles/
+ONIX/build/*
+
+!ONIX/bochs/bochsrc

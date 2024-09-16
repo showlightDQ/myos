@@ -17,7 +17,7 @@ header_start:
     dd 8  ; size
 
 header_end:
-times(0x40 -($-$$)) db 0xff
+; times(0x40 -($-$$)) db 0xff
 
 extern kernel_init
 extern memory_init
@@ -27,8 +27,7 @@ extern console_init
 section .text
 global _start
 _start:
-    ;两个参数
-
+    
 
     push ebx  ;ards 
     push eax  ;magic 0x20220205

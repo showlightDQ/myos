@@ -8,9 +8,6 @@ LIB    :=../build/lib
 
 
 
-MULTIBOOT2:=0x10000
-ENTRYPOINT:=$(shell python -c "print(f'0x{$(MULTIBOOT2) + 64:x}')")
-# ENTRYPOINT := 0x10040
 
 # -fno-pie  不生成位置无关的可执行文件
 # --verbose  显示编译命令细节
@@ -100,6 +97,9 @@ $(BUILD)/%.o: $(SRC)/%.c
 # 	$(BUILD)/lib/libc.o \
 	
 # 	ld -m elf_i386 -static $^ -o $@ -Ttext 0x1001000
+MULTIBOOT2:=0x10000
+# ENTRYPOINT:=$(shell python -c "print(f'0x{$(MULTIBOOT2) + 64:x}')")
+ENTRYPOINT := 0x10040
 
 LDFLAGS:= -m elf_i386 \
 		-static \
