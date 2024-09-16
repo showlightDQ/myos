@@ -8,6 +8,9 @@
 
 // #include <asm/unistd_32.h>
 
+#include <onix/mutex.h>
+extern mutex_t mutex;
+
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
 void idle_thread()
@@ -16,7 +19,9 @@ void idle_thread()
     set_interrupt_state(true);
     while (true)
     {
+        mutex_lock(&mutex);
         LOGK("idle task.... %d\n", counter++);
+        mutex_unlock(&mutex);
         // BMB;
         // sleep(100000);
         asm volatile(
@@ -61,8 +66,10 @@ void init_thread()
 
     while (true)
     {
+        mutex_lock(&mutex);
         DEBUGK("init thread!!!  counter= %d --------------\n",counter++);
-        sleep(300);
+        mutex_unlock(&mutex);
+        sleep(30);
         // test();
     }
 }
@@ -74,8 +81,10 @@ void test_thread()
 
     while (true)
     {
+        mutex_lock(&mutex);
         DEBUGK("test thread!!!  counter= %d \n",counter++);
-        sleep(500);
+        mutex_unlock(&mutex);
+        sleep(10);
         // test();
     }
     

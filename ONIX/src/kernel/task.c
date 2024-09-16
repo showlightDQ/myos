@@ -11,7 +11,7 @@
 #include <onix/global.h>
 // #include <onix/arena.h>
 // #include <onix/fs.h>
-// #include <onix/errno.h>
+#include <onix/errno.h>
 #include <onix/timer.h>
 // #include <onix/device.h>
 // #include <onix/tty.h>
@@ -693,7 +693,7 @@ void thread_c()
     while (true)
     {
         yield();
-        printk("ccc "); 
+        printk("ccc ---"); 
          test();
     }
 }
@@ -706,11 +706,11 @@ void  task_init()
     task_setup();
     
     idle_task = task_create(idle_thread, "idle", 1, KERNEL_USER);
-                task_create(test_thread, "test", 5, NORMAL_USER);
                 task_create(init_thread, "init", 5, NORMAL_USER);
-                task_create(thread_a, "a", 5, NORMAL_USER);
-                task_create(thread_b, "b", 5, NORMAL_USER);
-                task_create(thread_c, "c", 5, NORMAL_USER);
+                task_create(test_thread, "test", 5, NORMAL_USER);
+                // task_create(thread_a, "a", 5, NORMAL_USER);
+                // task_create(thread_b, "b", 5, NORMAL_USER);
+                // task_create(thread_c, "c", 5, NORMAL_USER);
   
     // task_create(c, "task_c", 5, KERNEL_USER);
      

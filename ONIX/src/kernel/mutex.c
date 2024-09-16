@@ -2,7 +2,7 @@
 #include <onix/task.h>
 #include <onix/interrupt.h>
 #include <onix/assert.h>
-// #include <onix/errno.h>
+#include <onix/errno.h>
 
 void mutex_init(mutex_t *mutex)
 {
@@ -15,6 +15,7 @@ void mutex_lock(mutex_t *mutex)
 {
     // 关闭中断，保证原子操作
     bool intr = interrupt_disable();
+    assert(mutex->waiters.head.next != NULL && mutex->waiters.tail.prev !=NULL);
 
     task_t *current = running_task();
     while (mutex->value == true)
@@ -22,6 +23,7 @@ void mutex_lock(mutex_t *mutex)
         // 若 value 为 true，表示已经被别人持有
         // 则将当前任务加入互斥量等待队列
         // task_block(current, &mutex->waiters, TASK_BLOCKED, TIMELESS);
+        task_block(current, &mutex->waiters, TASK_BLOCKED, 0);
     }
 
     // 无人持有
@@ -53,7 +55,7 @@ void mutex_unlock(mutex_t *mutex)
     {
         task_t *task = element_entry(task_t, node, mutex->waiters.tail.prev);
         assert(task->magic == ONIX_MAGIC);
-        // task_unblock(task, EOK);
+        task_unblock(task, EOK);
         // 保证新进程能获得互斥量，不然可能饿死
         task_yield();
     }

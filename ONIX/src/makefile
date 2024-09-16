@@ -144,8 +144,6 @@ kernel.bin:  kernel.o  \
 	$(LIB)/$(word 23,$^)     \
 	$(KERNEL)/$(word 24,$^)  \
 	$(KERNEL)/$(word 25,$^)  \
-
-
 	-o $(KERNEL)/$@ -Ttext $(ENTRYPOINT)
 system.bin : kernel.bin 
 	objcopy -O binary $(KERNEL)/$< $(BUILD)/$@  

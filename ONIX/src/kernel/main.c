@@ -28,7 +28,8 @@ extern void syscall_init();
 // #define CRT_CURSOR_H 0xe
 // #define CRT_CURSOR_L 0xf
 
-
+               #include<onix/mutex.h>
+               mutex_t mutex;
       
 void kernel_init()
 {
@@ -42,11 +43,12 @@ void kernel_init()
      clock_init();
      task_init();
      syscall_init();
+                     mutex_init(&mutex);
 
      // set_alarm(2);
      // time_init();
      // rtc_init();
-      
+
      set_interrupt_state(true);
      yield();
      // hang();
