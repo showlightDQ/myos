@@ -9,7 +9,7 @@ boot: disk
 floppy_bootsig_check: disabled=0
 floppya: type=1_44
 # no floppyb
-
+  
 ata0: enabled=true, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
 ata0-master: type=disk, path="../build/master.img", mode=flat, cylinders=0, heads=16, spt=63, sect_size=512, model="Generic 1234", biosdetect=auto, translation=auto
 ata0-slave: type=none
