@@ -1,7 +1,5 @@
 00000000 a i386
 00000018 a length
-00010000 r header_start
-00010018 r header_end
 00010040 T _start
 0001004e T kernel_init
 000100a0 T magic_breakpoint
@@ -253,6 +251,8 @@
 000150f7 T bin_to_bcd
 00015146 T div_round_up
 0001515e T atoi
+00016dc8 r header_start
+00016de0 r header_end
 00019000 d screen
 00019004 d pos
 00019008 d attr

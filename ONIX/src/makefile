@@ -104,7 +104,7 @@ ENTRYPOINT := 0x10040
 LDFLAGS:= -m elf_i386 \
 		-static \
 		-Ttext $(ENTRYPOINT)\
-		--section-start=.multiboot2=$(MULTIBOOT2)
+		--section-start  multiboot2=$(MULTIBOOT2)
 LDFLAGS:=$(strip ${LDFLAGS})
 
 $(BUILD)/kernel.bin: \
