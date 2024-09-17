@@ -12,6 +12,6 @@ ONIX/bochs/
 !ONIX/bochs/bochsr*
 ONIX/tools/
 ONIX/src/helpfiles/
-ONIX/build/*
+ONIX/build/**
 
 !ONIX/bochs/bochsrc

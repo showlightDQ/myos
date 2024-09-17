@@ -41,6 +41,7 @@ jmp prepare_protect_mode
 
 prepare_protect_mode:
      
+    xchg bx,bx ;-------------------------------------------------------
 
     cli
 

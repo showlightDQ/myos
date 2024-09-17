@@ -252,11 +252,5 @@ void console_init()
 {
    
     console_clear();
-    set_cursor();
-
-
-
-
-
- 
+    set_cursor(); 
 }

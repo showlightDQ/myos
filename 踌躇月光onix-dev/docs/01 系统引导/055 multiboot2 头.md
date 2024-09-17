@@ -12,7 +12,7 @@
 
 - `magic` = 0xE85250D6
 - `architecture`:
-    - 0：32 位保护模式
+    - 0：32 位i386保护模式  4:32位MIPS
 - `checksum`：与 `magic`, `architecture`, `header_length` 相加必须为 `0`
 
 ## 参考文献

@@ -4,7 +4,7 @@ $(BUILD)/kernel.iso : $(BUILD)/kernel.bin $(SRC)/utils/grub.cfg
 # 检测内核文件是否合法
 	grub-file --is-x86-multiboot2 $<
 # 创建 iso 目录
-	mkdir -p $(BUILD)/iso/boot/grub
+	mkdir -p -v $(BUILD)/iso/boot/grub
 # 拷贝内核文件
 	cp $< $(BUILD)/iso/boot
 # 拷贝 grub 配置文件
@@ -23,7 +23,7 @@ QEMU_CDROM_BOOT:= -boot d
 .PHONY: qemub
 qemub: $(BUILD)/kernel.iso $(IMAGES)
 	$(QEMU) $(QEMU_CDROM) $(QEMU_CDROM_BOOT) \
-	# $(QEMU_DEBUG)
+	$(QEMU_DEBUG)
 
 .PHONY:cdrom
 cdrom: $(BUILD)/kernel.iso $(IMAGES)

@@ -5,9 +5,9 @@
 #include <onix/stdlib.h>
 #include <onix/string.h>
 #include <onix/bitmap.h>
-// #include <onix/multiboot2.h>
+#include <onix/multiboot2.h>
 #include <onix/task.h>
-// #include <onix/syscall.h>
+#include <onix/syscall.h>
 // #include <onix/fs.h>
 #include <onix/printk.h>
 #include <onix/io.h>
@@ -81,42 +81,67 @@ void memory_init(u32 magic, u32 addr)
             }
         }
     }
-    // else if (magic == MULTIBOOT2_MAGIC)
-    // {
-    //     u32 size = *(unsigned int *)addr;
-    //     multi_tag_t *tag = (multi_tag_t *)(addr + 8);
+    else if (magic == MULTIBOOT2_MAGIC)
+    {
+        u32 size = *(unsigned int *)addr;
+        multi_tag_t *tag = (multi_tag_t *)(addr + 8);
 
-    //     LOGK("Announced mbi size 0x%x\n", size);
-    //     while (tag->type != MULTIBOOT_TAG_TYPE_END)
-    //     {
-    //         if (tag->type == MULTIBOOT_TAG_TYPE_MMAP)
-    //             break;
-    //         // 下一个 tag 对齐到了 8 字节
-    //         tag = (multi_tag_t *)((u32)tag + ((tag->size + 7) & ~7));
-    //     }
+        LOGK("Announced mbi(multiboot information) size 0x%x byte.\n", size);
+        /*       3.6.8 Memory map  ( https://www.gnu.org/software/grub/manual/multiboot2/multiboot.pdf ) P17
+        This tag provides memory map.
+                 +-------------------+  offset
+        u32      | type = 6          |   0x00
+        u32      | size              |   0x04
+        u32      | entry_size        |   0x08
+        u32      | entry_version     |   0x0c
+        varies   | entries           |   0x10
+                 +-------------------+
+        ‘entry_size’ contains the size of one entry so that in future new fields may be added
+        to it. It’s guaranteed to be a multiple of 8. ‘entry_version’ is currently set at ‘0’. Future
+        versions will increment this field. Future version are guranteed to be backward compatible
+        with older format. Each entry has the following structure:
+        entry:   +-------------------+
+        u64      | base_addr         |   0x10
+        u64      | length            |   0x18
+        u32      | type              |   0x20
+        u32      | reserved          |   0x24
+        next:    +-------------------+   0x28
+          |                               |
+        next:                            0x40                        */
+        multi_tag_mmap_t *mtag;
 
-    //     multi_tag_mmap_t *mtag = (multi_tag_mmap_t *)tag;
-    //     multi_mmap_entry_t *entry = mtag->entries;
-    //     while ((u32)entry < (u32)tag + tag->size)
-    //     {
-    //         LOGK("Memory base 0x%p size 0x%p type %d\n",
-    //              (u32)entry->addr, (u32)entry->len, (u32)entry->type);
-    //         count++;
-    //         if (entry->type == ZONE_VALID && entry->len > memory_size)
-    //         {
-    //             memory_base = (u32)entry->addr;
-    //             memory_size = (u32)entry->len;
-    //         }
-    //         entry = (multi_mmap_entry_t *)((u32)entry + mtag->entry_size);
-    //     }
-    // }
+        while (tag->type != MULTIBOOT_TAG_TYPE_END)
+        {
+            if (tag->type == MULTIBOOT_TAG_TYPE_MMAP)
+            {
+                mtag = (multi_tag_mmap_t *)tag;
+                break;
+            }    
+            // 下一个 tag 对齐到了 8 字节
+            tag = (multi_tag_t *)((u32)tag + ((tag->size + 7) & ~7));
+        }
+        
+        multi_mmap_entry_t *entry = mtag->entries;
+        while ((u32)entry < (u32)mtag + mtag->size)
+        {
+            LOGK("Memory base 0x%p size 0x%p type %d\n",
+                 (u32)entry->addr, (u32)entry->len, (u32)entry->type);
+            count++;
+            if (entry->type == ZONE_VALID && entry->len > memory_size)
+            {
+                memory_base = (u32)entry->addr;
+                memory_size = (u32)entry->len;
+            }
+            entry = (multi_mmap_entry_t *)((u32)entry + mtag->entry_size);
+        }
+    }
     else
     {
         panic("Memory init magic unknown 0x%p\n", magic);
     }
     int sizeM = memory_size >> 20;
     int sizeK = memory_size & 0xfffff;
-    sizeK = sizeK >> 10;
+        sizeK = sizeK >> 10;
     int sizeB = memory_size & 0b1111111111;
     
     LOGK("ARDS count %d\n", count);
