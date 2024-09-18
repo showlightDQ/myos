@@ -68,7 +68,7 @@ header_end:
 ; - IDTR：内核必须在设置好自己的中断描述符表之前关闭中断
 ; ## 参考文献; - <https://www.gnu.org/software/grub/manual/multiboot2/multiboot.pdf>
 
-; times(0x40 -($-$$)) db 0xff   ; 如果不是grub启动，可能需要这一句
+; times(0x40 -($-$$)) db 0xcc   ; 如果不是grub启动，可能需要这一句
 
 extern device_init
 extern console_init
@@ -87,7 +87,9 @@ _start:
  
     push ebx  ;ards 
     push eax  ;magic 0x20220205
-     
+    mov eax , $
+    mov eax, $-$$
+    mov eax,ebx
     call console_init; 
 
     call gdt_init

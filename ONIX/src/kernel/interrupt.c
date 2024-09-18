@@ -207,6 +207,10 @@ void idt_init()
     {
         handler_table[i] = default_handler;
     }
+    for (size_t i = 0x21; i < ENTRY_SIZE; i++)
+    {
+        handler_table[i] = default_handler;
+    }
 
     // 初始化系统调用
     gate_t *gate = &idt[0x80];

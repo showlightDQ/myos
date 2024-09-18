@@ -133,6 +133,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/lib/vsprintf.o \
 	$(BUILD)/lib/syscall.o \
 	$(BUILD)/lib/stdlib.o \
+	$(BUILD)/kernel/keyboard.o \
 
 	$(shell mkdir -p $(dir $@))
 	ld ${LDFLAGS} $^ -o $@
@@ -143,7 +144,6 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/ide.o \
 	$(BUILD)/kernel/serial.o \
 	$(BUILD)/kernel/arena.o \
-	$(BUILD)/kernel/keyboard.o \
 	$(BUILD)/kernel/tty.o \
 	$(BUILD)/kernel/buffer.o \
 	$(BUILD)/kernel/system.o \

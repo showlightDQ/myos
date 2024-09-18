@@ -428,12 +428,9 @@ protect_mode_entrance:
         mov ecx,4
         mov bl,200
         mov edi,0x10000
-        call read_disk
-         
-        ; call setup_page
-
-  
-        
+        call read_disk        
+        ; call setup_page      
+          
         mov eax,0x20220205  ;跳转过去后读取
         mov ebx,ards_count
         ;增加以上两行，以更好地兼容grub

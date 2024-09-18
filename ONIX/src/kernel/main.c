@@ -21,6 +21,8 @@ extern void rtc_init();
 
 extern void clock_init();
 extern void syscall_init();
+extern void keyboard_init();
+
 
 // #define CRT_ADDR_REG 0x3d4
 // #define CRT_DATA_REG 0x3d5
@@ -41,8 +43,8 @@ extern void syscall_init();
           mapping_init();
           clock_init();
           task_init();
-          syscall_init();
-                            
+          syscall_init();          
+          keyboard_init();   
                     
 
      // set_alarm(2);

@@ -193,7 +193,7 @@ void console_clear()
 
 void console_write(char *buf , u32 count)
 {
-    // bool intstatus = interrupt_disable();
+    bool intstatus = interrupt_disable();
     char ch;
     char* ptr = (char*)pos;
     while (count--)
@@ -245,7 +245,7 @@ void console_write(char *buf , u32 count)
     }
     // command_lf();
     // command_cr();
-    // set_interrupt_state(intstatus);
+    set_interrupt_state(intstatus);
 }
 
 void console_init()
