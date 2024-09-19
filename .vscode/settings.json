@@ -44,7 +44,8 @@
         "task.h": "c",
         "syscall.h": "c",
         "list.h": "c",
-        "mutex.h": "c"
+        "mutex.h": "c",
+        "errno.h": "c"
     },
     "C_Cpp.dimInactiveRegions": false
 }

@@ -2,7 +2,7 @@
 #include <onix/io.h>
 #include <onix/assert.h>
 #include <onix/debug.h>
-// #include <onix/fifo.h>
+#include <onix/fifo.h>
 #include <onix/mutex.h>
 #include <onix/task.h>
 #include <onix/device.h>
@@ -124,7 +124,7 @@ typedef enum
 
 static char keymap[][4] = {
     /* 扫描码 未与 shift 组合  与 shift 组合 以及相关状态 */
-    /* ---------------------------------- */
+    /* --------------------单码----双码-------- */
     /* 0x00 */ {INV, INV, false, false},   // NULL
     /* 0x01 */ {0x1b, 0x1b, false, false}, // ESC
     /* 0x02 */ {'1', '!', false, false},
@@ -230,7 +230,7 @@ static task_t *waiter; // 等待输入的任务
 
 #define BUFFER_SIZE 64        // 输入缓冲区大小
 static char buf[BUFFER_SIZE]; // 输入缓冲区
-// static fifo_t fifo;           // 循环队列
+static fifo_t fifo;           // 循环队列
 
 static bool capslock_state; // 大写锁定
 static bool scrlock_state;  // 滚动锁定
@@ -246,7 +246,7 @@ static bool extcode_state;  // 扩展码状态
 // SHIFT 键状态
 #define shift_state (keymap[KEY_SHIFT_L][2] || keymap[KEY_SHIFT_R][2])
 
-static void keyboard_wait()
+static void keyboard_wait() //读空键盘缓冲区
 {
     u8 state;
     do
@@ -255,7 +255,7 @@ static void keyboard_wait()
     } while (state & 0x02); // 读取键盘缓冲区，直到为空
 }
 
-static void keyboard_ack()
+static void keyboard_ack()  //等待键盘ACK响应
 {
     u8 state;
     do
@@ -264,7 +264,7 @@ static void keyboard_ack()
     } while (state != KEYBOARD_CMD_ACK);
 }
 
-static void set_leds()
+static void set_leds()  
 {
     u8 leds = (capslock_state << 2) | (numlock_state << 1) | scrlock_state;
     keyboard_wait();
@@ -280,133 +280,129 @@ static void set_leds()
 
 extern int tty_rx_notify();
 
+    int keypresscount = 0; //我自己临时设的
+
 void keyboard_handler(int vector)
 {
+    keypresscount++;
     assert(vector == 0x21);
-    send_eoi(vector); // 向中断控制器发送中断处理结束的信息
+    send_eoi(vector); // 向中断控制器发送中断处理结束的信息   
+
+    // 接收扫描码
     u16 scancode = inb(KEYBOARD_DATA_PORT);
-    LOGK("%#x \n",scancode); 
+    // LOGK("count %d code:%#x \n",keypresscount,scancode); 
+    u8 ext = 2; // keymap 状态索引，默认没有 shift 键
+
+    // 是扩展码字节
+    if (scancode == 0xe0)
+    {
+        // 置扩展状态
+        extcode_state = true;
+        return;
+    }
+
+    // 是扩展码
+    if (extcode_state)
+    {
+        // 改状态索引
+        ext = 3;
+
+        // 修改扫描码，添加 0xe0 前缀
+        scancode |= 0xe000;
+
+        // 扩展状态无效
+        extcode_state = false;
+    }
+
+    // 获得通码
+    u16 makecode = (scancode & 0x7f);
+    if (makecode == CODE_PRINT_SCREEN_DOWN)
+    {
+        makecode = KEY_PRINT_SCREEN;
+    }
+
+    // 通码非法 > 0x5e
+    if (makecode > KEY_PRINT_SCREEN)
+    {
+        return;
+    }
+
+    // DEBUGK("scancode 0x%x\n", scancode);
+
+    // 是否是断码，按键抬起
+    bool breakcode = ((scancode & 0x0080));
+    if (breakcode)
+    {
+        // 如果是则设置状态
+        keymap[makecode][ext] = false;
+        return;
+    }
+
+    // 下面是通码，按键按下
+    keymap[makecode][ext] = true;
+
+    // 是否需要设置 LED 灯
+    bool led = false;   //这里用select  makecode  case  应该更省时间吧？  //TODO  
+    if (makecode == KEY_NUMLOCK)
+    {
+        numlock_state = !numlock_state;
+        led = true;
+    }
+    else if (makecode == KEY_CAPSLOCK)
+    {
+        capslock_state = !capslock_state;
+        led = true;
+    }
+    else if (makecode == KEY_SCRLOCK)
+    {
+        scrlock_state = !scrlock_state;
+        led = true;
+    }
+
+    if (led)
+    {
+        set_leds();
+    }
+
+    // 计算 shift 状态
+    bool shift = false;
+    if (capslock_state && ('a' <= keymap[makecode][0] && keymap[makecode][0] <= 'z'))
+    {
+        shift = !shift;
+    }
+    if (shift_state)
+    {
+        shift = !shift;
+    }
+
+    // 获得按键 ASCII 码
+    char ch = 0;
+    // [/?] 这个键比较特殊，只有这个键扩展码和普通码一样
+    if (ext == 3 && (makecode != KEY_SLASH))
+    {
+        ch = keymap[makecode][1];
+    }
+    else
+    {
+        ch = keymap[makecode][shift];
+    }
+
+    if (ch == INV)
+        return;
+
+    LOGK("keydown %c \n", ch);
+
+    // 通知 tty 设备处理输入字符
+    // if (tty_rx_notify(&ch, ctrl_state, shift_state, alt_state) > 0)
+    //     return;
+
+    fifo_put(&fifo, ch);
+    if (waiter != NULL)
+    {
+        task_unblock(waiter, EOK);
+        waiter = NULL;
+    }
 }
-
-
-// {
-//     assert(vector == 0x21);
-//     send_eoi(vector); // 向中断控制器发送中断处理结束的信息
-
-//     // 接收扫描码
-//     u16 scancode = inb(KEYBOARD_DATA_PORT);
-//     u8 ext = 2; // keymap 状态索引，默认没有 shift 键
-
-//     // 是扩展码字节
-//     if (scancode == 0xe0)
-//     {
-//         // 置扩展状态
-//         extcode_state = true;
-//         return;
-//     }
-
-//     // 是扩展码
-//     if (extcode_state)
-//     {
-//         // 改状态索引
-//         ext = 3;
-
-//         // 修改扫描码，添加 0xe0 前缀
-//         scancode |= 0xe000;
-
-//         // 扩展状态无效
-//         extcode_state = false;
-//     }
-
-//     // 获得通码
-//     u16 makecode = (scancode & 0x7f);
-//     if (makecode == CODE_PRINT_SCREEN_DOWN)
-//     {
-//         makecode = KEY_PRINT_SCREEN;
-//     }
-
-//     // 通码非法
-//     if (makecode > KEY_PRINT_SCREEN)
-//     {
-//         return;
-//     }
-
-//     // DEBUGK("scancode 0x%x\n", scancode);
-
-//     // 是否是断码，按键抬起
-//     bool breakcode = ((scancode & 0x0080) != 0);
-//     if (breakcode)
-//     {
-//         // 如果是则设置状态
-//         keymap[makecode][ext] = false;
-//         return;
-//     }
-
-//     // 下面是通码，按键按下
-//     keymap[makecode][ext] = true;
-
-//     // 是否需要设置 LED 灯
-//     bool led = false;
-//     if (makecode == KEY_NUMLOCK)
-//     {
-//         numlock_state = !numlock_state;
-//         led = true;
-//     }
-//     else if (makecode == KEY_CAPSLOCK)
-//     {
-//         capslock_state = !capslock_state;
-//         led = true;
-//     }
-//     else if (makecode == KEY_SCRLOCK)
-//     {
-//         scrlock_state = !scrlock_state;
-//         led = true;
-//     }
-
-//     if (led)
-//     {
-//         set_leds();
-//     }
-
-//     // 计算 shift 状态
-//     bool shift = false;
-//     if (capslock_state && ('a' <= keymap[makecode][0] && keymap[makecode][0] <= 'z'))
-//     {
-//         shift = !shift;
-//     }
-//     if (shift_state)
-//     {
-//         shift = !shift;
-//     }
-
-//     // 获得按键 ASCII 码
-//     char ch = 0;
-//     // [/?] 这个键比较特殊，只有这个键扩展码和普通码一样
-//     if (ext == 3 && (makecode != KEY_SLASH))
-//     {
-//         ch = keymap[makecode][1];
-//     }
-//     else
-//     {
-//         ch = keymap[makecode][shift];
-//     }
-
-//     if (ch == INV)
-//         return;
-
-//     // LOGK("keydown %c \n", ch);
-
-//     // 通知 tty 设备处理输入字符
-//     if (tty_rx_notify(&ch, ctrl_state, shift_state, alt_state) > 0)
-//         return;
-
-//     // fifo_put(&fifo, ch);
-//     if (waiter != NULL)
-//     {
-//         task_unblock(waiter, EOK);
-//         waiter = NULL;
-//     }
-// }
 
 u32 keyboard_read(void *dev, char *buf, u32 count)
 {
@@ -414,12 +410,12 @@ u32 keyboard_read(void *dev, char *buf, u32 count)
     int nr = 0;
     while (nr < count)
     {
-        // while (fifo_empty(&fifo))
+        while (fifo_empty(&fifo))
         {
             waiter = running_task();
             task_block(waiter, NULL, TASK_BLOCKED, TIMELESS);
         }
-        // buf[nr++] = fifo_get(&fifo);
+        buf[nr++] = fifo_get(&fifo);
     }
     lock_release(&lock);
     return count;
@@ -427,16 +423,16 @@ u32 keyboard_read(void *dev, char *buf, u32 count)
 
 void keyboard_init()
 {
-    // numlock_state = false;
-    // scrlock_state = false;
-    // capslock_state = false;
-    // extcode_state = false;
+    numlock_state = false;
+    scrlock_state = false;
+    capslock_state = false;
+    extcode_state = false;
 
-    // fifo_init(&fifo, buf, BUFFER_SIZE);
+    fifo_init(&fifo, buf, BUFFER_SIZE);
     lock_init(&lock);
     waiter = NULL;
 
-    // set_leds();
+    set_leds();
 
     set_interrupt_handler(IRQ_KEYBOARD, keyboard_handler);
     set_interrupt_mask(IRQ_KEYBOARD, true);

@@ -134,6 +134,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/lib/syscall.o \
 	$(BUILD)/lib/stdlib.o \
 	$(BUILD)/kernel/keyboard.o \
+	$(BUILD)/lib/fifo.o \
 
 	$(shell mkdir -p $(dir $@))
 	ld ${LDFLAGS} $^ -o $@
@@ -158,7 +159,6 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/fs/dev.o \
 	$(BUILD)/fs/pipe.o \
 	$(BUILD)/fs/ioctl.o \
-	$(BUILD)/lib/fifo.o \
 	$(BUILD)/lib/printf.o \
 	$(BUILD)/builtin/osh.o \
 	$(BUILD)/lib/restorer.o \
