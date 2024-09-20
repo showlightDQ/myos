@@ -17,7 +17,7 @@ void descriptor_init(descriptor_t *desc, u32 base, u32 limit)
 // 初始化内核全局描述符表
 void gdt_init()
 {
-    DEBUGK("         init gdt!!!\n");
+    DEBUGK("\ninit gdt!!!\n");
 
     memset(gdt, 0, sizeof(gdt));
 
@@ -84,11 +84,11 @@ void tss_init()
     descriptor_init(desc, (u32)&tss, sizeof(tss) - 1);
     desc->segment = 0;     // 系统段
     desc->granularity = 0; // 字节
-    desc->big = 0;         // 固定为 0
-    desc->long_mode = 0;   // 固定为 0
-    desc->present = 1;     // 在内存中
-    desc->DPL = 0;         // 用于任务门或调用门
-    desc->type = 0b1001;   // 32 位可用 tss
+    desc->big = 0;         // 固定为 0 ：16位模式
+    desc->long_mode = 0;   // 固定为 0 ：非64位扩展
+    desc->present = 1;     // 在内存中 
+    desc->DPL = 0;         // 用于任务门或调用门 高等级
+    desc->type = 0b1001;   // 32 位可用 tss  ?定义与全局描述符不同
 
     // BMB;
     asm volatile(

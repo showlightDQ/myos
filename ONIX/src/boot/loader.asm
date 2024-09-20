@@ -91,7 +91,8 @@ prepare_protect_mode:
         dw limit &  0xffff   ;  取GDT的低16位limit
         dw base & 0xffff   ;取base的低16位（0~15）
         db (base >> 16) & 0xff  ;取base的16~23位
-        db 0b1010 | 0b1001_0000  ;0x9e
+        ;    |7:present|6~5:DPL|4:segment|     type|3:Execut|2:C/D|1:R/W|0:Accessed|                      
+        db   0b1001_1010  ;0x9e
             ;1110： 低4位是段类型，| E | C/D | R/W | A | 表示：代码段，依从，可读，没有访问过
             ;segment =1 的情况
             ;Executable E:1代码段 E:0数据段 

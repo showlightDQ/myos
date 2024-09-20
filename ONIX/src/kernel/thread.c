@@ -57,28 +57,24 @@ int init_user_thread()
 extern void dev_init();
 extern u32 keyboard_read(void *dev, char *buf, u32 count);
 #include <onix/printk.h>
+
+ void real_init_thread()
+{
+    while(true)
+    {
+        BMB;
+    }
+}
 void init_thread()
 {
-    // char temp[100]; // 为栈顶有足够的空间
+    char temp[100]; // 为栈顶有足够的空间
     // dev_init();
     // task_to_user_mode();
     // lock_init(&lock);
 
-    u32 counter = 0;
-       char ch;
-       set_interrupt_state(true);
-       while (true)
-       {
-           bool intr = interrupt_disable();
-                keyboard_read(NULL,&ch, 1);
-                printk("%c", ch);
-           set_interrupt_state(intr);
-           // lock_acquire(&lock);
-           // DEBUGK("init thread!!!  counter= %d --------------\n",counter++);
-           // lock_release(&lock);
-           sleep(30);
-           // test();
-    }
+    task_to_user_mode();
+
+
 }
 
 void test_thread()

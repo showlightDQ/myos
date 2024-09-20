@@ -239,13 +239,13 @@ void task_activate(task_t *task)
 {
     assert(task->magic == ONIX_MAGIC);
 
-    if (task->pde != get_cr3())
-    {
-        set_cr3(task->pde);
-        // BMB;
-    }
+    // if (task->pde != get_cr3())
+    // {
+    //     set_cr3(task->pde);
+    //     // BMB;
+    // }
 
-    if (task->uid != KERNEL_USER)
+    if (task->uid != KERNEL_USER)  //如果是系统任务要切换，则切换到用户任务状态
     {
         tss.esp0 = (u32)task + PAGE_SIZE;
     }
@@ -366,62 +366,64 @@ static task_t *task_create(target_t target, const char *name, u32 priority, u32 
 
 
 // extern int sys_execve();
-// extern int init_user_thread();
-
+extern int init_user_thread();
+extern void real_init_thread();
 // // 调用该函数的地方不能有任何局部变量
 // // 调用前栈顶需要准备足够的空间
-// void task_to_user_mode()
-// {
-//     task_t *task = running_task();
+void task_to_user_mode()
+{
+    task_t *task = running_task();
 
-//     // 创建用户进程虚拟内存位图
-//     task->vmap = kmalloc(sizeof(bitmap_t));
-//     void *buf = (void *)alloc_kpage(1);
-//     bitmap_init(task->vmap, buf, USER_MMAP_SIZE / PAGE_SIZE / 8, USER_MMAP_ADDR / PAGE_SIZE);
+    // 创建用户进程虚拟内存位图
+    // task->vmap = kmalloc(sizeof(bitmap_t));
+    // void *buf = (void *)alloc_kpage(1);
+    // bitmap_init(task->vmap, buf, USER_MMAP_SIZE / PAGE_SIZE / 8, USER_MMAP_ADDR / PAGE_SIZE);
 
-//     // 创建用户进程页表
-//     task->pde = (u32)copy_pde();
-//     set_cr3(task->pde);
+    // 创建用户进程页表
+    // task->pde = (u32)copy_pde();
+    // set_cr3(task->pde);
 
-//     u32 addr = (u32)task + PAGE_SIZE;
+    u32 addr = (u32)task + PAGE_SIZE;
 
-//     addr -= sizeof(intr_frame_t);
-//     intr_frame_t *iframe = (intr_frame_t *)(addr);
+    addr -= sizeof(intr_frame_t);
+    intr_frame_t *iframe = (intr_frame_t *)(addr);
 
-//     iframe->vector = 0x20;
-//     iframe->edi = 1;
-//     iframe->esi = 2;
-//     iframe->ebp = 3;
-//     iframe->esp_dummy = 4;
-//     iframe->ebx = 5;
-//     iframe->edx = 6;
-//     iframe->ecx = 7;
-//     iframe->eax = 8;
+    iframe->vector = 0x20;
+    iframe->edi = 1;
+    iframe->esi = 2;
+    iframe->ebp = 3;
+    iframe->esp_dummy = 4;
+    iframe->ebx = 5;
+    iframe->edx = 6;
+    iframe->ecx = 7;
+    iframe->eax = 8;
 
-//     iframe->gs = 0;
-//     iframe->ds = USER_DATA_SELECTOR;
-//     iframe->es = USER_DATA_SELECTOR;
-//     iframe->fs = USER_DATA_SELECTOR;
-//     iframe->ss = USER_DATA_SELECTOR;
-//     iframe->cs = USER_CODE_SELECTOR;
+    iframe->gs = 0;
+    iframe->ds = USER_DATA_SELECTOR;
+    iframe->es = USER_DATA_SELECTOR;
+    iframe->fs = USER_DATA_SELECTOR;
+    iframe->ss = USER_DATA_SELECTOR;
+    iframe->cs = USER_CODE_SELECTOR;
 
-//     iframe->error = ONIX_MAGIC;
+    iframe->error = ONIX_MAGIC;
 
-//     iframe->eip = (u32)init_user_thread;
-//     iframe->eflags = (0 << 12 | 0b10 | 1 << 9);
-//     iframe->esp = USER_STACK_TOP;
+    iframe->eip = (u32)real_init_thread; //init_user_thread;
+    iframe->eflags = (0 << 12 | 0b10 | 1 << 9);
+    iframe->esp = USER_STACK_TOP;
 
-// #ifdef ONIX_DEBUG
-//     // ROP 技术，直接从中断返回
-//     // 通过 eip 跳转到 entry 执行
-//     asm volatile(
-//         "movl %0, %%esp\n"
-//         "jmp interrupt_exit\n" ::"m"(iframe));
-// #else
-//     int err = sys_execve("/bin/init.out", NULL, NULL);
-//     panic("exec /bin/init.out failure");
-// #endif
-// }
+#define ONIX_DEBUG
+#ifdef ONIX_DEBUG
+    // ROP 技术，直接从中断返回
+    // 通过 eip 跳转到 entry 执行
+    BMB;
+    asm volatile(
+        "movl %0, %%esp\n"
+        "jmp interrupt_exit\n" ::"m"(iframe));
+#else
+    int err = sys_execve("/bin/init.out", NULL, NULL);
+    panic("exec /bin/init.out failure");
+#endif
+}
 
 extern void interrupt_exit();
 
@@ -666,38 +668,6 @@ extern void init_thread();
 extern void test_thread();
 
 
-void  thread_a()
-{
-    set_interrupt_state(true);
-    while (true)
-    {
-        printk("AAA ");
-        yield();
-        test();
-    }
-}
-
-void thread_b()
-{
-    set_interrupt_state(true);
-    while (true)
-    {
-         printk("BBB "); 
-        yield();
-         test();
-    }
-}
-void thread_c()
-{
-    set_interrupt_state(true);
-    while (true)
-    {
-        yield();
-        printk("ccc ---"); 
-         test();
-    }
-}
-
 void  task_init()
 {
     list_init(&block_list);
@@ -708,9 +678,7 @@ void  task_init()
     idle_task = task_create(idle_thread, "idle", 1, KERNEL_USER);
                 task_create(init_thread, "init", 5, NORMAL_USER);
                 task_create(test_thread, "test", 5, NORMAL_USER);
-                // task_create(thread_a, "a", 5, NORMAL_USER);
-                // task_create(thread_b, "b", 5, NORMAL_USER);
-                // task_create(thread_c, "c", 5, NORMAL_USER);
+  
   
     // task_create(c, "task_c", 5, KERNEL_USER);
      
