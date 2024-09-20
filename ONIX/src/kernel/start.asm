@@ -92,8 +92,9 @@ _start:
     mov eax,ebx
     call console_init; 
 
+xchg bx, bx
     call gdt_init
-; xchg bx, bx
+xchg bx, bx
     lgdt [gdt_ptr]
 
     ; mov eax , code_selector

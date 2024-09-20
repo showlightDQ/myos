@@ -84,13 +84,18 @@ void tss_init()
     descriptor_init(desc, (u32)&tss, sizeof(tss) - 1);
     desc->segment = 0;     // 系统段
     desc->granularity = 0; // 字节
-    desc->big = 0;         // 固定为 0 ：16位模式
-    desc->long_mode = 0;   // 固定为 0 ：非64位扩展
-    desc->present = 1;     // 在内存中 
+    desc->big = 0;         // 固定为 0  
+    desc->long_mode = 0;   // 固定为 0  
+    desc->present = 1;     // 在内存中  Set this to 1 to be able to access the segment, otherwise a #NP (Segment not Present) exception is generated on access.
     desc->DPL = 0;         // 用于任务门或调用门 高等级
-    desc->type = 0b1001;   // 32 位可用 tss  ?定义与全局描述符不同
-
-    // BMB;
+    desc->type = 0b1001;   // 32 位可用 tss  System Segment Descriptor。定义与全局描述符Memory Segment Descriptor不同 https://wiki.osdev.org/Descriptor
+                            //type： 0000b=0x0	unused (invalid Descriptor)
+                            //       0001b=0x1	80286-TSS, 16 bit
+                            //       0010b=0x2	LDT
+                            //       0011b=0x3	activ 80286-TSS, 16 bit
+                            //       1001=0x9	80386-TSS, 32 bit
+                            //       1011=0xB	activ 80386-TSS, 32 bit
+    BMB;
     asm volatile(
         "ltr %%ax\n" ::"a"(KERNEL_TSS_SELECTOR));
 }

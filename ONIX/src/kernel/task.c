@@ -399,24 +399,28 @@ void task_to_user_mode()
     iframe->eax = 8;
 
     iframe->gs = 0;
-    iframe->ds = USER_DATA_SELECTOR;
-    iframe->es = USER_DATA_SELECTOR;
     iframe->fs = USER_DATA_SELECTOR;
-    iframe->ss = USER_DATA_SELECTOR;
-    iframe->cs = USER_CODE_SELECTOR;
-
+    iframe->es = USER_DATA_SELECTOR;
+    iframe->ds = USER_DATA_SELECTOR;
+    // iframe->vector0 =  ;别的程序进入中断时留下的向量，这里仅占位，供弹出。
     iframe->error = ONIX_MAGIC;
+    //以下为irt时恢复的内容
 
     iframe->eip = (u32)real_init_thread; //init_user_thread;
+    iframe->cs = USER_CODE_SELECTOR;
     iframe->eflags = (0 << 12 | 0b10 | 1 << 9);
-    iframe->esp = USER_STACK_TOP;
+    u32 tempstack = (u32)alloc_kpage(1);
+    iframe->esp = tempstack;
+    // iframe->esp = USER_STACK_TOP;
+    iframe->ss = USER_DATA_SELECTOR;  
+
 
 #define ONIX_DEBUG
 #ifdef ONIX_DEBUG
     // ROP 技术，直接从中断返回
     // 通过 eip 跳转到 entry 执行
     BMB;
-    asm volatile(
+    asm volatile( // 跳入中断退出程序，以匹配以上寄存器
         "movl %0, %%esp\n"
         "jmp interrupt_exit\n" ::"m"(iframe));
 #else

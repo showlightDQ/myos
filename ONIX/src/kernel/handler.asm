@@ -25,7 +25,7 @@ interrupt_handler_%1:
 
 
 interrupt_entry:
-
+    xchg bx, bx
     ; 保存上文寄存器信息
     push ds
     push es
@@ -47,13 +47,13 @@ interrupt_entry:
 interrupt_exit:
 
     ; 对应调用前的push eax，相当于pop eax ，弹出调用前压入的参数。（调用结束恢复栈）
-    add esp, 4
+    add esp, 4   ;丢弃中断向量， 
 
     ; 调用信号处理函数
     ; call task_signal
 
     ; 恢复下文寄存器信息
-    popa
+    popa  ;仅恢复7个寄存器，edi,esi,ebp,ebx,edx,ecx,eax,忽略esp
     pop gs
     pop fs
     pop es
@@ -63,8 +63,8 @@ interrupt_exit:
     ; 对应 error code 或 push magic
     add esp, 8
 
-    ;  
-
+   
+xchg bx, bx
     iret
 ; 执行宏，生成  interrupt_handler_0x__:
 INTERRUPT_HANDLER 0x00, 0; divide by zero

@@ -77,7 +77,7 @@ typedef struct task_frame_t  // 进程切换时栈内的预设寄存器数据，
 // 中断帧
 typedef struct intr_frame_t
 {
-    u32 vector;
+    u32 vector; //进入中断程序后，获得的中断号，进入后续中断程序
 
     u32 edi;
     u32 esi;
@@ -95,7 +95,7 @@ typedef struct intr_frame_t
     u32 es;
     u32 ds;
 
-    u32 vector0;
+    u32 vector0; //别的程序进入中断时留下的向量，这里仅占位，供弹出
 
     u32 error;
 
