@@ -69,9 +69,7 @@ void gdt_init()
 
     // asm volatile ("sgdt gdt_ptr");
     // memcpy(&gdt,(char* )gdt_ptr.base,gdt_ptr.limit+1);
-    // gdt_ptr.base = (u32)&gdt;
-    // gdt_ptr.limit = sizeof(gdt)-1;
-    // asm volatile("lgdt gdt_ptr");  //是否有必要在汇编码里面加 /n
+    // asm volatile("lgdt gdt_ptr");  //改去start.asm里面执行了。是否有必要在汇编码里面加 /n
 
 }
 

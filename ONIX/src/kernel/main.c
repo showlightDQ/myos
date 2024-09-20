@@ -22,7 +22,7 @@ extern void rtc_init();
 extern void clock_init();
 extern void syscall_init();
 extern void keyboard_init();
-
+extern void tss_init();
 
 // #define CRT_ADDR_REG 0x3d4
 // #define CRT_DATA_REG 0x3d5
@@ -30,22 +30,23 @@ extern void keyboard_init();
 // #define CRT_CURSOR_H 0xe
 // #define CRT_CURSOR_L 0xf
 
-          
 
-     void kernel_init()
-     {
+void kernel_init()
+{
 
-          asm volatile("xchgw %bx, %bx");
-          interrupt_init();
-          console_init();
-          gdt_init();
-          memory_map_init();
-          mapping_init();
-          clock_init();
-          task_init();
-          syscall_init();          
-          keyboard_init();   
-                    
+     asm volatile("xchgw %bx, %bx");
+     tss_init();
+     interrupt_init();
+     console_init();
+     gdt_init();
+     memory_map_init();
+     mapping_init();
+     clock_init();
+     task_init();
+     syscall_init();
+     keyboard_init();
+       
+                 
 
      // set_alarm(2);
      // time_init();

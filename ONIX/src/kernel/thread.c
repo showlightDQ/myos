@@ -55,7 +55,8 @@ int init_user_thread()
 }
 
 extern void dev_init();
-
+extern u32 keyboard_read(void *dev, char *buf, u32 count);
+#include <onix/printk.h>
 void init_thread()
 {
     // char temp[100]; // 为栈顶有足够的空间
@@ -64,15 +65,19 @@ void init_thread()
     // lock_init(&lock);
 
     u32 counter = 0;
+       char ch;
        set_interrupt_state(true);
-
-    while (true)
-    {
-        // lock_acquire(&lock);
-        // DEBUGK("init thread!!!  counter= %d --------------\n",counter++);
-        // lock_release(&lock);
-        sleep(30);
-        // test();
+       while (true)
+       {
+           bool intr = interrupt_disable();
+                keyboard_read(NULL,&ch, 1);
+                printk("%c", ch);
+           set_interrupt_state(intr);
+           // lock_acquire(&lock);
+           // DEBUGK("init thread!!!  counter= %d --------------\n",counter++);
+           // lock_release(&lock);
+           sleep(30);
+           // test();
     }
 }
 
