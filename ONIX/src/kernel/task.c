@@ -237,8 +237,8 @@ void task_wakeup()
 // // // 激活任务
 void task_activate(task_t *task)
 {
-    assert(task->magic == ONIX_MAGIC);
 
+    assert(task->magic == ONIX_MAGIC);
     // if (task->pde != get_cr3())
     // {
     //     set_cr3(task->pde);
@@ -310,9 +310,9 @@ static task_t *task_create(target_t target, const char *name, u32 priority, u32 
     frame->eip = (void *)target;  // 最高地址(0x*fffc~0x*ffff)的值，handler的地址，任务切换后放入eip
 
     extern void idle_thread(void);
-    frame->alternate = (void *)idle_thread; // 我自己加的，试试效果
+    // frame->alternate = (void *)idle_thread; // 我自己加的，试试效果
     // 进程切换时 esp 存在task的0地址处，切换时已设置
-    strcpy((char *)task->name, name);  // 这里应换为 strncpy 确保不溢出
+    strcpy((char *)task->name, name);  // TODO:这里应换为 strncpy 确保不溢出
 
     task->stack = (u32 *)stack;  //地址是0x*****000，任务切换时该值被读入 esp
     task->priority = priority;
@@ -370,7 +370,8 @@ extern int init_user_thread();
 extern void real_init_thread();
 // // 调用该函数的地方不能有任何局部变量
 // // 调用前栈顶需要准备足够的空间
-void task_to_user_mode()
+// 返回到用户态的入口，target是用户成的程序
+void task_to_user_mode(target_t target )
 {
     task_t *task = running_task();
 
@@ -387,7 +388,7 @@ void task_to_user_mode()
 
     addr -= sizeof(intr_frame_t);
     intr_frame_t *iframe = (intr_frame_t *)(addr);
-
+    //强行修改当前任务栈的 数据  
     iframe->vector = 0x20;
     iframe->edi = 1;
     iframe->esi = 2;
@@ -406,11 +407,12 @@ void task_to_user_mode()
     iframe->error = ONIX_MAGIC;
     //以下为irt时恢复的内容
 
-    iframe->eip = (u32)real_init_thread; //init_user_thread;
+    iframe->eip =(u32)target;  
+    // iframe->eip = (u32)real_init_thread; //init_user_thread;
     iframe->cs = USER_CODE_SELECTOR;
-    iframe->eflags = (0 << 12 | 0b10 | 1 << 9);
+    iframe->eflags = (0 << 12 | 0b10 | 1 << 9); //0<<12 设置IO指令需要0特权级才能使用
     u32 tempstack = (u32)alloc_kpage(1);
-    iframe->esp = tempstack;
+    iframe->esp = tempstack+PAGE_SIZE;
     // iframe->esp = USER_STACK_TOP;
     iframe->ss = USER_DATA_SELECTOR;  
 
@@ -681,7 +683,7 @@ void  task_init()
     
     idle_task = task_create(idle_thread, "idle", 1, KERNEL_USER);
                 task_create(init_thread, "init", 5, NORMAL_USER);
-                task_create(test_thread, "test", 5, NORMAL_USER);
+                // task_create(test_thread, "test", 5, NORMAL_USER);
   
   
     // task_create(c, "task_c", 5, KERNEL_USER);

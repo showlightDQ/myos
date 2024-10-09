@@ -11,9 +11,9 @@
 
 #define ENTRY_SIZE 0x30
 
-#define PIC_M_CTRL 0x20 // 主片的控制端口
-#define PIC_M_DATA 0x21 // 主片的数据端口
-#define PIC_S_CTRL 0xa0 // 从片的控制端口
+#define PIC_M_CTRL 0x20 // 主片的控制端口 用于写入(Initialization Command Words）ICW1
+#define PIC_M_DATA 0x21 // 主片的数据端口 用于写入ICW2、3、4  
+#define PIC_S_CTRL 0xa0 // 从片的控制端口 
 #define PIC_S_DATA 0xa1 // 从片的数据端口
 #define PIC_EOI 0x20    // 通知中断控制器中断结束
 
@@ -167,13 +167,23 @@ void exception_handler(
 void pic_init()
 {
     outb(PIC_M_CTRL, 0b00010001); // ICW1: 边沿触发, 级联 8259, 需要ICW4.
-    outb(PIC_M_DATA, 0x20);       // ICW2: 起始中断向量号 0x20
-    outb(PIC_M_DATA, 0b00000100); // ICW3: IR2接从片.
+        /* 0	0	0	1	LTIM	ADI	SINGL	IC4
+        ICW1 需要写入到主片的 0x20 端口和从片的 0xA0 端口；
+        IC4 表示是否要写入 ICW4，这表示，并不是所有的 ICW 初始化控制字都需要用到；IC4 为 1 时表示需要在后面写入 ICW4 ，为 0 ICW1 则不需要。注意，x86 系统 IC4 必须为1
+        SNGL 表示 single，若 SNGL 为 1 ，表示单片，若 SNGL 为 0，表示级联(Cascade)。若在级联模式下，这要涉及到主片和从片用哪个 sIRQ 接口互相连接的问题，所以当 SNGL 为 0 时，主片和从片也是需要 ICW3 的。
+        ADI 表示 Call Address Interval，用来设置 8085 的调用时间间隔， x86 不需要设置。
+        LTIM 表示 Level/Edge Triggered Mode，用来设置中断检测方式，LTIM 为 0 表示边沿触发，LTIM 为 1 表示电平触发；
+        第 4 位的 1 是固定的，这是 ICW1 的标记；// 第 5 ~ 7 位专用于 8085 处理器，x86 不需要，直接置为 0 即可；*/
+    outb(PIC_M_DATA, 0x20);       // ICW2: 起始中断向量号 0x20 0b0010_0000
+        /*ICW2 需要写入到主片的 0x21 端口和从片的 0xA1；*/
+    outb(PIC_M_DATA, 0b00000100); // ICW3: IR2接从片. 主片用置位1表示该口收取从片中断信息 
+        //ICW3 仅在 级联的方式 下才需要 (如果 ICW1 中的 SNGL 为 0)，用来设置主片和从片用哪个 IRQ 接口互连。
     outb(PIC_M_DATA, 0b00000001); // ICW4: 8086模式, 正常EOI
-
+    
+    //.....................................................................
     outb(PIC_S_CTRL, 0b00010001); // ICW1: 边沿触发, 级联 8259, 需要ICW4.
     outb(PIC_S_DATA, 0x28);       // ICW2: 起始中断向量号 0x28
-    outb(PIC_S_DATA, 2);          // ICW3: 设置从片连接到主片的 IR2 引脚
+    outb(PIC_S_DATA, 2);          // ICW3: 设置从片连接到主片的 IR2 引脚，从片用编号标识连接到主片的第几口
     outb(PIC_S_DATA, 0b00000001); // ICW4: 8086模式, 正常EOI
 
     outb(PIC_M_DATA, 0b11111111); // 关闭所有中断

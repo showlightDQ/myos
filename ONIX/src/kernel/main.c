@@ -38,13 +38,13 @@ void kernel_init()
      tss_init();
      interrupt_init();
      console_init();
-     gdt_init();
+     // gdt_init();
      memory_map_init();
      mapping_init();
-     clock_init();
+     // clock_init();
      task_init();
      syscall_init();
-     keyboard_init();
+     // keyboard_init();
        
                  
 
@@ -52,7 +52,7 @@ void kernel_init()
      // time_init();
      // rtc_init();
 
-     set_interrupt_state(true);
+     // set_interrupt_state(true);
      yield();
      // hang();
 

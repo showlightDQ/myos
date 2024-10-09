@@ -31,7 +31,7 @@ interrupt_entry:
     push es
     push fs
     push gs
-    pusha
+    pusha  ;压入8个寄存器值
 
     ; 找到前面 push %1 压入的 中断向量
     mov eax, [esp + 12 * 4]
@@ -53,7 +53,7 @@ interrupt_exit:
     ; call task_signal
 
     ; 恢复下文寄存器信息
-    popa  ;仅恢复7个寄存器，edi,esi,ebp,ebx,edx,ecx,eax,忽略esp
+    popa  ;弹出8 个int。但仅恢复7个寄存器值，edi,esi,ebp,ebx,edx,ecx,eax,忽略esp
     pop gs
     pop fs
     pop es
@@ -65,7 +65,7 @@ interrupt_exit:
 
    
 xchg bx, bx
-    iret
+    iret   ;先后弹出 eip,cs,eflags,
 ; 执行宏，生成  interrupt_handler_0x__:
 INTERRUPT_HANDLER 0x00, 0; divide by zero
 INTERRUPT_HANDLER 0x01, 0; debug

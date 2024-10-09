@@ -63,6 +63,7 @@ extern u32 keyboard_read(void *dev, char *buf, u32 count);
     while(true)
     {
         BMB;
+        sleep(100);
     }
 }
 void init_thread()
@@ -72,7 +73,7 @@ void init_thread()
     // task_to_user_mode();
     // lock_init(&lock);
 
-    task_to_user_mode();
+    task_to_user_mode(real_init_thread);
 
 
 }

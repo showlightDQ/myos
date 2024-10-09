@@ -17,7 +17,7 @@ void descriptor_init(descriptor_t *desc, u32 base, u32 limit)
 // 初始化内核全局描述符表
 void gdt_init()
 {
-    DEBUGK("\ninit gdt!!!\n");
+    DEBUGK("init gdt!!!\n");
 
     memset(gdt, 0, sizeof(gdt));
 

@@ -98,7 +98,7 @@ void set_alarm(u32 secs)
 
 void rtc_init()
 {
-    cmos_write(CMOS_B, 0b01000010); // 打开周期中断
+    cmos_write(CMOS_B, 0b01000010); // 打开周期中断,24小时制
 
     // 设置中断频率
     // outb(CMOS_A, (inb(CMOS_A) & 0xf) | 0b1110);

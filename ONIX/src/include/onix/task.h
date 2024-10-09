@@ -71,10 +71,10 @@ typedef struct task_frame_t  // 进程切换时栈内的预设寄存器数据，
     u32 ebp;
     // void (*eip)(void);
     void* eip;  //测试看看
-    void *alternate;  //任务自然结束后留一个保底的切换程序
+    // void *alternate;  //任务自然结束后留一个保底的切换程序 我加的。
 } task_frame_t;
 
-// 中断帧
+// 中断帧。用户态发生中断的时候由程序将用户态的这些信息压入帧中，中断返回时再读出来
 typedef struct intr_frame_t
 {
     u32 vector; //进入中断程序后，获得的中断号，进入后续中断程序
@@ -102,8 +102,8 @@ typedef struct intr_frame_t
     u32 eip;
     u32 cs;
     u32 eflags;
-    u32 esp;
-    u32 ss;
+    u32 esp;    // 只有用户态发生的中断，且中断描述符设置为“中断门”才多压这两个数据
+    u32 ss;  // 中断时从这里开始压入栈中，CPU自动压入
 } intr_frame_t;
 
 task_t *get_task(pid_t pid);
