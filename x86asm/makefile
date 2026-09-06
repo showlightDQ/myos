@@ -1,72 +1,74 @@
-build/%.bin: src/%.asm
-	nasm $< -o $@
+# .PHONY : clean
 
-build/%.o : src/%.asm
-	nasm -f elf32 $< -o $@
+# boot.bin : ./src/boot.asm
+# 	nasm ./src/boot.asm -o ./build/boot.bin
+# hd16m.img : boot.bin
+# 	dd if=./build/boot.bin of=./build/hd16m.img bs=512 count=1 conv=notrunc
+# bochs : hd16m.img
+# 	bochs -f  ./build/b 	-q
 
-ENTRY_POINT_ADDRESS:= 0x11000
-build/kernel.bin : build/start.o build/main.o
-	ld -m elf_i386 -static $^ -o $@ -Ttext ${ENTRY_POINT_ADDRESS} 
-build/%.o : src/%.c
-	gcc $(CFLAGS) -c $< -o $@
 
-build/master.img: build/boot.bin build/loader.bin build/kernel.bin
-ifeq ("$(wildcard build/master.img)","")
-	bximage -q -hd=10 -func=create -sectsize=512 -imgmode=flat $@
+# clean :
+# 	rm -rf boot.bin
+
+
+SRC_DIR := ./src
+BUILD_DIR := ./build
+# SRC_FILES := $(wildcard $(SRC_DIR)/*.asm)
+SRC_FILES := boot.asm loader.asm
+$(info $(SRC_FILES))
+
+
+# BOOT_SRC := $(SRC_DIR)/test.asm
+BOOT_SRC := $(SRC_DIR)/boot.asm
+BOOT_BIN := $(BUILD_DIR)/boot.bin
+HD_IMG   := $(BUILD_DIR)/hd16m.img
+BOCHSRC  := $(BUILD_DIR)/b
+ASFLAGS := nasm
+# 磁盘大小 16MB
+HD_SIZE_M := 16
+
+DEBUG := 1
+ifeq ($(DEBUG),1)
+ASFLAGS += -g
 endif
-	dd if=build/boot.bin  of=$@  bs=512 count=1 seek=0 conv=notrunc
-	dd if=build/loader.bin  of=$@  bs=512 count=4 seek=1 conv=notrunc 
-	dd if=build/kernel.bin  of=$@  bs=512 count=100 seek=6 conv=notrunc 
 
-.PHONY:bochs
-bochs:build/master.img
-	rm -rf build/bx_enh_dbg.ini
-	cd build && bochs -q -unlock
+ifeq ($(DEBUG),1)
+$(info debug模式打开)
+else
+$(info debug模式关闭)
+endif
 
-.PHONY:clean
+
+
+.PHONY: all bochs clean kill-bochs
+T :=
+all: $(BOOT_BIN) $(HD_IMG)
+
+
+# 汇编生成boot.bin
+$(BOOT_BIN): $(BOOT_SRC)
+	mkdir -p $(BUILD_DIR)
+	nasm -f bin $< -o $@
+
+# 创建16MB硬盘镜像，写入boot.bin到第一个扇区
+$(HD_IMG): $(BOOT_BIN)
+	mkdir -p $(BUILD_DIR)
+ifeq ("$(wildcard $(HD_IMG))","")
+	$(info 新建img文件)
+	dd if=/dev/zero of=$@ bs=1M count=$(HD_SIZE_M) status=none
+endif
+	dd if=$(BOOT_BIN) of=$@ bs=512 count=1 conv=notrunc status=none
+
+# 杀掉残留bochs，防止旧实例卡死
+kill-bochs:
+	-pkill bochs
+	-pkill -9 bochs
+
+# 启动bochs调试，不要加 -q
+bochs: kill-bochs all
+	bochs -f $(BOCHSRC) -q
+	$(info "bochs 结束")
+
 clean:
-	rm -rf build/*.bin
-	rm -rf build/*.o
-	rm -rf build/*.img
-	rm -rf build/bx_enh_dbg.ini
-
-CFLAGS:=-m32 \
-		-O0 \
-		-static \
-		-fno-asynchronous-unwind-tables \
-		-fno-pic \
-		-mpreferred-stack-boundary=2 	\
-		-fno-builtin \
-		-fverbose-asm  \
-		-nostdlib \
-		-nodefaultlibs \
-		-nostdinc \
-		-nostartfiles \
-		-fno-pie \
- 
-
-		# -fno-pie  不生成位置无关的可执行文件
-		# --verbose  显示编译命令细节
-		# -nostdlib   不使用标准库
-		# -nodefaultlibs   不使用默认库
-		# -nostdinc   不使用标准include
-		# -nostartfiles  不使用startfiles
-		# -fomit-frame-pointer  忽略栈指针
-		# -fno-stack-protector   不使用栈保护
-		# -fverbose-asm 生成的汇编码中加入C原命令注释
-		# -O0 optimise 优化级别
-		# -fno-stack-protector  取消栈保护
-		# -fno-pic  不使用位置无关代码
-		# -fno-asynchronous-unwind-tables  		   
-		# -fno-builtin  不用内建函数优化
-		# https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
-		# -c    编译为中间代码 生成.o文件 gcc -c 其实是调用了 as -32 (as -32 $< -o $@)
-		# -S  编译为汇编代码  生成.s文件
-		# -g  编译为可debug 的代码  
-		# -e main   以main函数为入口
-		# -E 预处理
-		# -masm=intel   转换为intel的汇编码
-		# -fomit-frame-pointer （忽略栈指针）编译时忽略函数内的栈顶转移和恢复操作
-		#                    即：push ebp ; mov ebp,esp......leave 
-		# 链接 ld -m elf_i386 -static XXX.o -o XXX.out -e main
-		#  --verbose   ：gcc XX.c -o XX.out --verbose 显示完整编译过程		
+	rm -rf $(BUILD_DIR)

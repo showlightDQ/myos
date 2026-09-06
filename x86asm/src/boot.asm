@@ -1,6 +1,6 @@
 org 0x7c00
 ;  
-
+xchg bx,bx
 mov ax,0x3
 int 0x10
 
@@ -33,7 +33,7 @@ call read_disk
     mov esi,0x7C00
 call write_disk
 
-
+xchg bx,bx 
 jmp 0x1000
 
 
