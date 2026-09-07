@@ -1,9 +1,6 @@
 #include<stdio.h>
 
-    int main(int x )
+    int main( )
     {
-        printf("hhhhhh");
-        printf("hhhhhh");
-        printf("hhhhhh");
-        printf("hhhhhh");
+        printf("Hello, World!\n ");
     }
