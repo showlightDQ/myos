@@ -42,7 +42,7 @@ main:
     int 0x80
 
     section .data
-        message db "hello world!!!" , 10,13,0
+        message db "hello world!!!112211" , 10,13,0
         message_end:
 
 ; 编译命令 nasm -f elf32 test_linux_protect_mode.asm 
